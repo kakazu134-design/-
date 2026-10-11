@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>大人マリッジ価値観診断</title><style>:root{--primary-color:#1a2a3a;--accent-color:#c5a059;--bg-color:#f8f9fa;--text-color:#333333}body{font-family:'Helvetica Neue',Arial,sans-serif;background-color:var(--bg-color);color:var(--text-color);line-height:1.6;margin:0;padding:20px}.container{max-width:600px;margin:40px auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.05)}h1{text-align:center;color:var(--primary-color);font-size:24px;margin-bottom:10px;letter-spacing:1px}.subtitle{text-align:center;font-size:14px;color:#666;margin-bottom:30px}.card{display:none}.card.active{display:block;animation:fadeIn .5s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.question-num{font-size:14px;color:var(--accent-color);font-weight:700;margin-bottom:5px}.question-text{font-size:18px;font-weight:700;color:var(--primary-color);margin-bottom:25px}.btn-choice{display:block;width:100%;padding:18px;margin-bottom:15px;background:#fff;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;text-align:left;cursor:pointer;transition:all .2s ease}.btn-choice:hover{border-color:var(--accent-color);background-color:rgba(197,160,89,.05)}.result-title{text-align:center;font-size:16px;color:#666}.animal-name{text-align:center;font-size:28px;font-weight:700;color:var(--primary-color);margin:10px 0 20px 0}.animal-icon{text-align:center;font-size:70px;margin-bottom:20px}.section-title{font-size:16px;font-weight:700;color:var(--primary-color);border-left:4px solid var(--accent-color);padding-left:10px;margin-top:30px;margin-bottom:10px}.box{background:#fdfbf7;border:1px solid #f0e6d2;padding:15px;border-radius:8px;font-size:15px}.btn-reset{display:block;width:100%;padding:15px;margin-top:40px;background:var(--primary-color);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;text-align:center;transition:background .2s}.btn-reset:hover{background:#2c3e50}</style></head><body><div class="container"><h1>大人マリッジ価値観診断</h1><div class="subtitle">30代・40代のための結婚観・相性選出アプリ</div><div class="card active" id="gender"><div class="question-num">START</div><div class="question-text">あなたの性別を教えてください</div><button class="btn-choice" onclick="selectGender('male')">【男性】として診断を始める</button><button class="btn-choice" onclick="selectGender('female')">【女性】として診断を始める</button></div><div class="card" id="q1"><div class="question-num">第 1 問 / 全 4 問</div><div class="question-text">結婚した後の「お金の管理」について、あなたの理想に最も近いものはどちらですか？</div><button class="btn-choice" onclick="nextQuestion('q1','q2','shiba',1)">【A】2人の収入を1つの口座にまとめ、お小遣い制などで「完全オープン」に管理したい。</button><button class="btn-choice" onclick="nextQuestion('q1','q2','neko',1)">【B】共通の生活費口座に毎月一定額を出し合い、残りは各自で「自由に」管理したい。</button></div><div class="card" id="q2"><div class="question-num">第 2 問 / 全 4 問</div><div class="question-text">お互いに仕事が忙しく、家事をする心の余裕がないとき、どう対応したいですか？</div><button class="btn-choice" onclick="nextQuestion('q2','q3','kitsune',1)">【A】便利家電、外食、家事代行などをフル活用して、「効率と時間」を優先したい。</button><button class="btn-choice" onclick="nextQuestion('q2','q3','penguin',1)">【B】多少の無理をしてでも、お互いに分担して「自分たちの手で丁寧」に暮らしたい。</button></div><div class="card" id="q3"><div class="question-num">第 3 問 / 全 4 問</div><div class="question-text">パートナーの言動に「モヤッ」としたり、直してほしい不満があるとき、どう伝えますか？</div><button class="btn-choice" onclick="nextQuestion('q3','q4','kitsune',1)">【A】時間を置かず、その場ですぐに「論理的に話し合って」解決したい。</button><button class="btn-choice" onclick="nextQuestion('q3','q4','penguin',1)">【B】相手の機嫌やタイミングを伺いながら、「言葉を選んで慎重に」伝えたい。</button></div><div class="card" id="q4"><div class="question-num">第 4 問 / 全 4 問</div><div class="question-text">待ちに待った休日のデート当日。相手が「急な仕事」や「体調不良」でキャンセルになったら？</div><button class="btn-choice" onclick="showResult('neko')">【A】「お互い様」と割り切り、切り替えて「1人の時間」を有意義に楽しむ。</button><button class="btn-choice" onclick="showResult('shiba')">【B】残念に感じつつも、家で待機したり「相手の看病やサポート」を優先したい。</button></div><div class="card" id="result"><div class="result-title">あなたの結婚観タイプは…</div><div id="result-icon" class="animal-icon"></div><div id="result-name" class="animal-name"></div><div class="section-title">🌟 あなたの特徴</div><div id="result-desc" class="box"></div><div class="section-title">🤝 相性の良いパートナーのタイプ</div><div id="result-match" class="box"></div><div class="section-title">🔍 そのパートナーの具体的な特徴</div><div id="result-partner-features" class="box"></div><div class="section-title">📢 相手がこのタイプか見抜く言動のサイン</div><div id="result-sign" class="box"></div><div class="section-title">👀 相手がこのタイプか見抜く「仕草」のサイン</div><div id="result-action" class="box"></div><div class="section-title">💡 初デート成功へのアドバイス</div><div id="result-advice" class="box"></div><div class="section-title">💋 効果的な口説き方・距離の縮め方</div><div id="result-romance" class="box"></div><button class="btn-reset" onclick="resetApp()">もう一度診断する</button></div></div><script>
+let userGender="male";let scores={kitsune:0,shiba:0,neko:0,penguin:0};
+function selectGender(g){userGender=g;document.getElementById("gender").classList.remove("active");document.getElementById("q1").classList.add("active");}
+function nextQuestion(e,t,n,c){scores[n]+=c;document.getElementById(e).classList.remove("active");document.getElementById(t).classList.add("active");}
+function showResult(e){scores[e]+=1;document.getElementById("q4").classList.remove("active");document.getElementById("result").classList.add("active");
+let t="kitsune";let n=-1;for(let c in scores){if(scores[c]>n){n=scores[c];t=c;}}
+const l={
+kitsune:{icon:"🦊",name:"クールなキツネ タイプ",
+desc:"頭が良くてとってもスマート！無駄が苦手でお互いに自立した関係を好むよ。仕事や一人の時間を大切にする大人な結婚生活向き！",
+match:"🐈 自由気ままなネコ タイプ",
+features:"お互いの『個』をしっかり尊重できるサバサバした大人の関係。趣味や一人の時間を大切に、信頼して自由に動くのが心地いいみたい！",
+sign:"『要するに〜』『効率を考えると〜』『結論から言うと〜』が口癖。お店選びの段取りが完璧で、愚痴をめったに言わないよ！",
+action:"無駄な動きが少なくて、姿勢がシャキッと伸びているよ。スマホやメニューをめくる手際が早く、視線を無駄に動かさないクールさ！",
+advice:{male:"（男性向け）女性は駆け引きが苦手。初デートの店はスマートに予約まで済ませてURLを送ろう！『何でもいい』は絶対NGだよ！",
+female:"（女性向け）男性は知的な会話が大好き。店選びは任せきりにせず『ここはどうですか？』と提案すると自立した女性で好印象！"},
+romance:{male:"（女性へ）『君と話してるとすごく刺激になるし高め合える最高のパートナーになれそう』と、知性を褒めるのが効果的だよ！",
+female:"（男性へ）彼の効率的な考え方を『本当にスマートで尊敬しちゃいます！』と褒めて。お互いの将来の夢を語り合うと距離が縮まるよ！"}},
+shiba:{icon:"🐕",name:"むつまじいシバ犬 タイプ",
+desc:"とっても一途で温厚な心の持ち主！何でも共有してアットホームで温かい家庭を築きたいチーム感を何より大切にしたいタイプだよ。",
+match:"🐧 ぬくもりのペンギン タイプ",
+features:"相手の気持ちに寄り添うのが上手なおっとり優しい人。感情を優しく察して話をニコニコ聞いてくれるから、ホッとできる家庭になるよ。",
+sign:"『大変でしたね〜』『すごく分かります』と優しい相槌で話を聞いてくれたり店員さんへの態度が丁寧ならこのタイプ。静かな所を好むよ。",
+action:"共感しているときに首を何度も『コクコク』と深く縦に振るよ。カップを両手で優しく包んで持ったり目をじっと見つめてくる仕草！",
+advice:{male:"（男性向け）高級店で無理に見栄を張らなくて大丈夫！落ち着くカフェを選んで『家族を大切にしたいんだ』とさりげなく伝えて！",
+female:"（女性向け）男性は家庭的な雰囲気に癒やされたいと思っているよ。デートでは『最近作った料理』の話をして笑顔を見せてあげてね！"},
+romance:{male:"（女性へ）『あなたといるとホッとするな』『ずっと一番の味方でいたいな』と一途な好意をまっすぐ伝えて！具体的に話すのが鍵だよ。",
+female:"（男性へ）『〇〇さんと一緒にいると本当に安心します』と彼の優しさに甘えてみて。彼が守りたくなる隙を作ると一気に進展するよ！"}},
+neko:{icon:"🐈",name:"自由気ままなネコ タイプ",
+desc:"結婚しても自分の時間や独自のペース、趣味を何より大切にしたい！縛り合わずに必要なときにそっと支え合う距離感を求めているよ。",
+match:"🦊 クールなキツネ タイプ",
+features:"感情に流されず何事もロジックと効率で解決しちゃう知的な人。お互いのキャリアややりたいことを全力で応援し合えるサバサバした関係！",
+sign:"『要するに〜』『結論から言うと〜』を多用したり、感情的にならず何でもスマートに片付ける知的な雰囲気。待ち合わせもキッチリ！",
+action:"お見合いやデートの席で、少し背もたれに深く寄りかかって座るよ。ふと窓の外を眺めたり周囲のインテリアに視線を泳がせる自由さ！",
+advice:{male:"（男性向け）彼女を自分のペースに巻き込んだりあれこれ詮索するのは絶対NG！彼女が熱中している趣味の話をリスペクトして聞いて！",
+female:"（女性向け）男性は束縛やベタベタが苦手。返信が遅くても催促はダメ。あなた自身も趣味を楽しんでいる姿を見せると最高に居心地良い！"},
+romance:{male:"（女性へ）焦って距離を詰めると逃げちゃうよ。『君のそういう芯が強くて自立してるところ格好いいね』と褒めて大人の余裕を見せて！",
+female:"（男性へ）彼を追いかけるのは逆効果！あえて一歩引くのがコツだよ。『自分の軸があって素敵ですね』と褒めて追わせる余白を残して！"}},
+penguin:{icon:"🐧",name:"ぬくもりのペンギン タイプ",
+desc:"相手の感情に寄り添うのが得意！家を世界で一番心が休まる安全基地にしたいタイプ。日々の丁寧な暮らしや毎日の対話を大切にしたいんだ。",
+match:"🐕 むつまじいシバ犬 タイプ",
+features:"一途で隠し事を嫌う愛情深い人。記念日をちゃんと大切にしてくれたり休日は必ず一緒に過ごして温かい家庭を作ろうとする情熱があるよ。",
+sign:"『みんなで〜』『2人で〜』をよく使い、家族の話をすっごく嬉しそうに話すならこのタイプ。LINEが丁寧でデート中も気遣ってくれるよ。",
+action:"感情が高まると身を乗り出して『本当ですか！』と大きくジェスチャー。笑うときに口元を手で隠したりあなたの行動に同調する仕草！",
+advice:{male:"（男性向け）話を遮ったりアドバイス（正論）を言うのは絶対ダメ！とにかく共感に徹して彼女にとっての『一番安心できる男』に！",
+female:"（女性向け）男性は非常に一途で優しい人。お店の予約や気遣いに対して『ありがとうございます！すごく嬉しい！』と大袈裟に伝えてね！"},
+romance:{male:"（女性へ）『どんな時も俺は君の味方だからね』『いつも頑張ってて偉いね』と全肯定して。静かでムードのある場所で告白がベスト！",
+female:"（男性へ）『一途で誠実なところ本当に尊敬するし大好きです』と内面の素敵さを言葉に。彼が一生大切にしたいと思える信頼関係を！"}}};
+document.getElementById("result-icon").innerText=l[t].icon;document.getElementById("result-name").innerText=l[t].name;document.getElementById("result-desc").innerText=l[t].desc;document.getElementById("result-match").innerText=l[t].match;document.getElementById("result-partner-features").innerText=l[t].features;document.getElementById("result-sign").innerText=l[t].sign;document.getElementById("result-action").innerText=l[t].action;document.getElementById("result-advice").innerText=l[t].advice[userGender];document.getElementById("result-romance").innerText=l[t].romance[userGender];}
+function resetApp(){scores={kitsune:0,shiba:0,neko:0,penguin:0};document.getElementById("result").classList.remove("active");document.getElementById("gender").classList.add("active");}</script></body></html>
