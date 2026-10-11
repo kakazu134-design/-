@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>畑（ハル）の天気・土・農作業日誌 - 島アグリ沖縄</title>
+  <style>
+    :root {
+      --bg: #F4F6F0; --card-bg: #FFFFFF; --text: #1A1A1A; --text-sub: #4A4A4A;
+      --border: #333333; --green: #1E6B36; --yellow: #D97706; --red: #C5221F;
+      --blue: #1D4ED8; --purple: #6B21A8; --haru-brown: #8D5B4C;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; padding: 12px; background-color: var(--bg);
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+      color: var(--text); font-size: 20px; line-height: 1.5;
+    }
+    .container { max-width: 520px; margin: 0 auto; }
+    .app-header {
+      background: #FFF; border: 3px solid var(--border); border-radius: 16px;
+      padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 0 #333;
+    }
+    .app-title { font-size: 26px; font-weight: 900; color: var(--green); margin: 0 0 6px 0; }
+    .app-sub { font-size: 16px; font-weight: bold; color: var(--text-sub); margin: 0; }
+    .haru-card {
+      background: var(--card-bg); border: 3px solid var(--border); border-radius: 16px;
+      padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 0 #333;
+    }
+    .card-title {
+      font-size: 22px; font-weight: 900; margin: 0 0 12px 0;
+      border-bottom: 2px dashed #999; padding-bottom: 8px;
+    }
+    .haru-select, .haru-input {
+      width: 100%; font-size: 21px; font-weight: bold; padding: 12px;
+      border: 3px solid var(--border); border-radius: 12px; background: #FAFAFA;
+      color: var(--text); margin-bottom: 12px;
+    }
+    .input-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+    .input-label { font-size: 16px; font-weight: bold; color: #444; display: block; margin-bottom: 4px; }
+    .haru-btn {
+      width: 100%; font-size: 21px; font-weight: 900; padding: 14px;
+      border: 3px solid var(--border); border-radius: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 0 #222;
+    }
+    .haru-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #222; }
+    .btn-green { background: #2E7D32; color: #FFF; }
+    .btn-blue  { background: #1976D2; color: #FFF; }
+    .btn-purple{ background: var(--purple); color: #FFF; }
+    .btn-orange{ background: #E65100; color: #FFF; }
+    .btn-red-outline { background: #FFEBEE; color: #C62828; border-color: #C62828; font-size: 17px; padding: 10px; }
+    .btn-gray  { background: #ECEFF1; color: #222; }
+    .region-tab-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .region-tab-btn {
+      background: #FFF; border: 3px solid #0284C7; border-radius: 12px;
+      padding: 10px 4px; font-size: 17px; font-weight: 900; color: #0369A1; cursor: pointer; text-align: center;
+    }
+    .region-tab-btn.active { background: #0284C7; color: #FFF; box-shadow: 0 3px 0 #075985; }
+    
+    .giga-box { background: #FFF9C4; border: 2px solid #FBC02D; border-radius: 12px; padding: 12px; font-size: 16px; font-weight: bold; margin-bottom: 12px; }
+    .giga-detail { background: #FFFDE7; border: 1px dashed #FBC02D; border-radius: 8px; padding: 8px; margin-top: 6px; font-size: 14px; color: #555; }
+    .giga-meter-bg { background: #E0E0E0; border-radius: 8px; height: 16px; overflow: hidden; margin-top: 8px; border: 1px solid #777; }
+    .giga-meter-fill { background: #4CAF50; height: 100%; width: 100%; transition: width 0.3s; }
+    
+    /* 気象庁通信ログバッジ */
+    .jma-status-badge {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 8px;
+      padding: 6px 10px; margin-bottom: 10px; font-size: 14px; font-weight: bold; color: #334155;
+    }
+    .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22C55E; margin-right: 4px; }
+    
+    .decision-badge {
+      text-align: center; padding: 16px 10px; border-radius: 16px; border: 3px solid #222;
+      font-size: 30px; font-weight: 900; margin-bottom: 12px; line-height: 1.2;
+    }
+    .dec-go { background: #D4EDDA; color: #155724; border-color: #28A745; }
+    .dec-warn { background: #FFF3CD; color: #856404; border-color: #FFC107; }
+    .dec-stop { background: #F8D7DA; color: #721C24; border-color: #DC3545; }
+    .haru-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .haru-info-cell { background: #F0F4F8; border: 2px solid #B0BEC5; border-radius: 10px; padding: 10px; text-align: center; }
+    .cell-label { font-size: 15px; font-weight: bold; color: #555; }
+    .cell-val { font-size: 24px; font-weight: 900; }
+    .hourly-scroll { display: flex; overflow-x: auto; gap: 8px; padding: 6px 0; margin-bottom: 12px; }
+    .hourly-item {
+      flex: 0 0 100px; background: #F1F5F9; border: 2px solid #CBD5E1; border-radius: 12px;
+      padding: 8px; text-align: center; font-size: 15px; font-weight: bold;
+    }
+    .weekly-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .weekly-legend { display: flex; justify-content: space-between; padding: 4px 8px; font-size: 13px; font-weight: 900; color: #64748B; border-bottom: 2px solid #CBD5E1; }
+    .weekly-row {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px; font-size: 16px; font-weight: bold;
+    }
+    .weekly-date { width: 85px; font-size: 15px; }
+    .weekly-mark { width: 32px; font-size: 22px; text-align: center; }
+    .weekly-pop { width: 55px; color: #0284C7; font-weight: 900; }
+    .weekly-temp { width: 110px; font-size: 15px; text-align: center; }
+    .temp-max { color: #DC2626; font-weight: 900; }
+    .temp-min { color: #2563EB; font-weight: 900; }
+    .weekly-badge { padding: 3px 6px; border-radius: 8px; font-size: 12px; font-weight: 900; }
+    .step-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
+    .step-btn {
+      background: #FFF; border: 3px solid #777; border-radius: 12px;
+      padding: 12px; font-size: 19px; font-weight: 900; text-align: left; cursor: pointer;
+    }
+    .step-btn.active { background: #E8F5E9; border-color: #2E7D32; color: #1B5E20; box-shadow: 0 0 0 2px #2E7D32; }
+    .harvest-result-box { background: #EFEBE9; border: 3px solid var(--haru-brown); border-radius: 14px; padding: 14px; margin-top: 10px; }
+    .harvest-date-huge { font-size: 25px; font-weight: 900; color: #BF360C; text-align: center; margin: 6px 0; }
+    .finish-box { background: #FFF3E0; border: 2px solid #FF9800; border-radius: 12px; padding: 12px; margin-top: 10px; }
+    .soil-renewal-box { background: #EFEBE9; border: 3px solid #6D4C41; border-radius: 14px; padding: 14px; margin-top: 12px; }
+    .soil-calc-result { background: #FFF; border: 2px solid #8D6E63; border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 16px; font-weight: bold; }
+    .tomorrow-advice-box { background: #E0F2FE; border: 3px solid #0284C7; border-radius: 14px; padding: 14px; margin-top: 12px; }
+    .diary-box { background: #FDFBF7; border: 3px solid #78350F; border-radius: 14px; padding: 14px; margin-top: 12px; }
+    .diary-item { background: #FFF; border: 2px solid #D6D3D1; border-radius: 10px; padding: 10px; margin-top: 8px; font-size: 16px; }
+    .weed-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .weed-item { background: #FAFAFA; border: 2px solid #81C784; border-radius: 12px; padding: 10px; }
+    .weed-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .weed-title { font-size: 19px; font-weight: 900; color: var(--green); }
+    .weed-badge-pill { font-size: 13px; font-weight: 900; padding: 2px 8px; border-radius: 20px; color: #FFF; }
+    .w-lv1 { background: #4CAF50; } .w-lv2 { background: #FBC02D; color:#222; } .w-lv3 { background: #FB8C00; } .w-lv4 { background: #E53935; }
+    .weed-btn-sm {
+      background: #E8F5E9; color: #1B5E20; border: 2px solid #2E7D32;
+      font-size: 16px; font-weight: 900; padding: 8px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 6px;
+    }
+    .prompt-chip-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 10px 0; }
+    .prompt-chip {
+      background: #F3E8FF; border: 2px solid #A855F7; border-radius: 12px;
+      padding: 10px; font-size: 17px; font-weight: 900; color: #581C87; text-align: left; cursor: pointer;
+    }
+    .ai-answer-box { background: #FAF5FF; border: 3px solid var(--purple); border-radius: 14px; padding: 12px; margin-top: 10px; font-size: 17px; font-weight: bold; }
+    .tap-choice-box { background: #F3E8FF; border: 2px solid #C084FC; border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+    .chip-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .chip-btn {
+      background: #FFF; border: 2px solid #9333EA; color: #581C87;
+      font-size: 16px; font-weight: 900; padding: 8px 4px; border-radius: 10px; cursor: pointer; text-align: center;
+    }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px;
+    }
+    .modal-card {
+      background: #FFF; border: 4px solid #C62828; border-radius: 20px;
+      padding: 20px 16px; max-width: 420px; width: 100%; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header class="app-header">
+    <h1 class="app-title">🧅 畑（ハル）の天気・土・農作業日誌</h1>
+    <p class="app-sub">気象庁直結！南部・中部・北部対応</p>
+  </header>
+
+  <!-- ギガ残量モニター -->
+  <div class="giga-box">
+    <div>📶 <strong>回線：</strong> <span id="netTypeTxt">確認中</span></div>
+    <div style="font-size: 16px; margin-top:4px;">
+      残り容量：<strong id="remainMbTxt" style="font-size:20px; color:#1B5E20;">1,024.00 MB</strong> / 1ギガ
+    </div>
+    <div class="giga-detail">
+      📊 <strong>今月（<span id="currentMonthTxt">--月</span>）のギガ内訳：</strong><br>
+      ・天気取得：<span id="weatherCountTxt">0回</span> (約 <span id="weatherKbTxt">0</span> KB)<br>
+      ・AI質問・登録：<span id="aiCountTxt">0回</span> (約 <span id="aiKbTxt">0</span> KB)<br>
+      今月の合計：<strong id="usedKbTxt">0 KB</strong> (毎月1日に自動リセット)
+    </div>
+    <div class="giga-meter-bg"><div class="giga-meter-fill" id="gigaBar"></div></div>
+  </div>
+
+  <!-- ① 地域と天気取得 -->
+  <section class="haru-card">
+    <h2 class="card-title">📍 ① 畑の地域を選ぶ（南部・中部・北部）</h2>
+    <div class="region-tab-grid">
+      <button type="button" class="region-tab-btn active" id="tabSouth" onclick="setSubRegion('south')">
+        🌴 南部<br><span style="font-size:13px; font-weight:normal;">糸満・八重瀬・南城</span>
+      </button>
+      <button type="button" class="region-tab-btn" id="tabCentral" onclick="setSubRegion('central')">
+        🌺 中部<br><span style="font-size:13px; font-weight:normal;">沖縄市・うるま・読谷</span>
+      </button>
+      <button type="button" class="region-tab-btn" id="tabNorth" onclick="setSubRegion('north')">
+        🌳 北部<br><span style="font-size:13px; font-weight:normal;">名護・国頭・本部</span>
+      </button>
+    </div>
+    <label for="areaSelect" class="input-label">地域リスト（離島含む）：</label>
+    <select id="areaSelect" class="haru-select">
+      <option value="okinawa_south" selected>🌴 沖縄本島：南部（糸満・八重瀬・南城・那覇）</option>
+      <option value="okinawa_central">🌺 沖縄本島：中部（沖縄市・うるま・読谷・西原）</option>
+      <option value="okinawa_north">🌳 沖縄本島：北部（名護・本部・国頭・大宜味）</option>
+      <option value="473000">🏝️ 宮古島地方</option>
+      <option value="474000">🌺 石垣・八重山地方</option>
+      <option value="472000">☀️ 大東島地方</option>
+    </select>
+    <button id="fetchBtn" class="haru-btn btn-green">🔄 気象庁から最新データを再取得</button>
+  </section>
+
+  <!-- ② 今日の天気判断＆時間帯別・週間予報 -->
+  <section class="haru-card">
+    <h2 class="card-title">🌾 ② <span id="currentRegionNameTxt">沖縄南部</span>の天気と作業判断</h2>
+    
+    <!-- 気象庁生データ取得ログ -->
+    <div class="jma-status-badge">
+      <div><span class="status-dot"></span>気象庁通信：<span id="jmaFetchStatusTxt" style="color:#15803D;">正常取得済</span></div>
+      <div>発表日時：<span id="jmaReportTimeTxt">確認中</span></div>
+    </div>
+
+    <div id="decisionBadge" class="decision-badge dec-warn">
+      <div>☁️ 最新天気を取得中...</div>
+      <div style="font-size: 18px; font-weight: normal; margin-top: 6px;">気象庁からデータを読み込んでいます</div>
+    </div>
+    <div class="haru-info-grid">
+      <div class="haru-info-cell">
+        <div class="cell-label">雨が降る確率</div>
+        <div class="cell-val" id="popVal">-- %</div>
+      </div>
+      <div class="haru-info-cell">
+        <div class="cell-label">風の吹き具合</div>
+        <div class="cell-val" id="windVal" style="font-size: 19px;">--</div>
+      </div>
+    </div>
+    <div style="background:#FFFDE7; border:2px solid #FBC02D; border-radius:10px; padding:12px; margin-bottom:12px;">
+      <div style="font-weight:900; font-size:17px; color:#B78103;">💡 【<span id="adviceRegionTxt">南部</span>×土質】の作業アドバイス：</div>
+      <div id="haruAdvice" style="font-size: 17px; font-weight: bold; margin-top: 4px;">天気を読み込むと表示されます。</div>
+    </div>
+    <div style="font-size:16px; font-weight:900; color:#1E6B36; margin-bottom:4px;">⏱️ 直近の時間帯別・天気マークと降水確率：</div>
+    <div class="hourly-scroll" id="hourlyList"><div style="padding:10px; font-size:15px; color:#666;">読み込み中...</div></div>
+    <details style="margin-top:10px;" open>
+      <summary style="font-size:18px; font-weight:900; color:#1D4ED8; cursor:pointer;">📅 向こう1週間の天気予報（タップで開閉）</summary>
+      <div class="weekly-list" id="weeklyList"><div style="padding:8px; font-size:15px; color:#666;">読み込み中...</div></div>
+    </details>
+  </section>
+
+  <!-- ③ 畑の土セレクト ＆ 土の入れ替え・堆肥石灰計算 -->
+  <section class="haru-card">
+    <h2 class="card-title">🪨 ③ 畑の土と「土の入れ替え」</h2>
+    <div class="tap-choice-box">
+      <div style="font-weight:900; font-size:17px; color:var(--purple); margin-bottom:6px;">👇 ボタンを押すだけで土を自動セット！</div>
+      <div style="font-size:15px; font-weight:bold; color:var(--purple); margin-bottom:4px;">📍 地域を押す：</div>
+      <div class="chip-buttons">
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('itoman')">南部（糸満・八重瀬）</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('naha')">中南部（南城・那覇）</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('yonabaru')">東海岸（与那原・西原）</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('nakagusuku')">中城・北中城</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('nago')">北部（名護・本部）</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('yanbaru')">山原（大宜味・国頭）</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('coast')" style="grid-column: span 2;">🏖️ 海岸・砂浜近くの畑</button>
+      </div>
+      <div style="font-size:15px; font-weight:bold; color:var(--purple); margin-bottom:4px;">🎨 土の色・手触りを押す：</div>
+      <div class="chip-buttons">
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('red')">🟥 赤土・赤茶色</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('gray')">🟫 灰色・ネバネバ粘土</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('yellow')">🟨 黄色・山原酸性土</button>
+        <button type="button" class="chip-btn" onclick="applySoilByQuick('sand')">🏖️ 白っぽい砂地</button>
+      </div>
+      <div id="quickSoilResultTxt" style="font-size:15px; font-weight:bold; color:#1B5E20; display:none;"></div>
+    </div>
+    <label for="soilSelect" class="input-label">選ばれている土：</label>
+    <select id="soilSelect" class="haru-select">
+      <option value="maaji" selected>🟥 島尻マージ（赤土・水はけ良好）</option>
+      <option value="jaagaru">🟫 ジャーガル（灰色泥岩・水持ち大）</option>
+      <option value="kunigami">🟨 国頭マージ（山原赤黄色・酸性土）</option>
+      <option value="sandy">🏖️ 海岸・砂質土（水はけ特大・砂地）</option>
+    </select>
+    <div id="soilAdviceBox" style="background:#EFEBE9; border-left:6px solid var(--haru-brown); padding:10px; font-size:16px; font-weight:bold; border-radius:4px;"></div>
+
+    <div class="soil-renewal-box">
+      <div style="font-weight:900; font-size:18px; color:#4E342E; margin-bottom:6px;">🔄 土の入れ替え（天地返し・客土）管理</div>
+      <label for="soilRenewedDateInput" class="input-label">最後に土を入れ替えた日（西暦）：</label>
+      <input type="date" id="soilRenewedDateInput" class="haru-input">
+      <label for="soilCycleYearsInput" class="input-label">入れ替え周期の目安：</label>
+      <select id="soilCycleYearsInput" class="haru-select" style="margin-bottom:8px;">
+        <option value="1">1年ごと（厳格管理）</option>
+        <option value="2" selected>2年ごと（沖縄の露地畑・標準）</option>
+        <option value="3">3年ごと（じっくり型）</option>
+        <option value="4">4年ごと</option><option value="5">5年ごと</option>
+      </select>
+      <div style="background:#FFF; border:2px solid #8D6E63; border-radius:10px; padding:10px; margin-top:8px;">
+        <div style="font-size:15px; font-weight:900; color:#5D4037;">📅 次回の土入れ替え（天地返し）予定日：</div>
+        <div class="harvest-date-huge" id="nextSoilRenewalDateTxt" style="color:#5D4037; font-size:24px; margin: 6px 0;">----年--月--日</div>
+        <div id="soilRenewalStatusDetailTxt" style="font-size:15px; font-weight:bold; text-align:center;"></div>
+      </div>
+      <div class="soil-calc-result">
+        <div style="font-size:16px; font-weight:900; color:#1B5E20; margin-bottom:4px;">⚖️ 土入れ替え・土作りに必要な堆肥と石灰（目安）：</div>
+        <div style="font-size:14px; color:#444; margin-bottom:4px;">※ 畑の面積（<span id="calcAreaTxt">--</span>）に合わせて自動計算</div>
+        <div>🐮 <strong>完熟牛糞・バーク堆肥：</strong> 約 <span id="manureKgTxt" style="color:#1B5E20; font-size:20px;">0</span> kg（約40L袋で 約<strong id="manureBagsTxt">0</strong>袋）</div>
+        <div>⚪ <strong>苦土石灰（酸度調整）：</strong> 約 <span id="limeKgTxt" style="color:#1B5E20; font-size:20px;">0</span> kg（約20kg袋で 約<strong id="limeBagsTxt">0</strong>袋）</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ 雑草管理 -->
+  <section class="haru-card">
+    <h2 class="card-title">🌿 ④ 邪魔な雑草の管理</h2>
+    <div style="background:#E8F5E9; border:2px solid #66BB6A; border-radius:10px; padding:10px; margin-bottom:10px;">
+      <div style="font-size:15px; font-weight:bold; color:#2E7D32;">🧹 今日の土と草引き適期：</div>
+      <div id="weedingEaseTxt" style="font-size:19px; font-weight:900; color:#1B5E20; margin-top:2px;">判定中...</div>
+      <div id="weedWeatherSpeedTxt" style="font-size:14px; font-weight:bold; color:#E65100; margin-top:2px;">計算中</div>
+    </div>
+    <div class="weed-list" id="weedListContainer"></div>
+  </section>
+
+  <!-- ⑤ 野菜カルテ -->
+  <section class="haru-card">
+    <h2 class="card-title">🌱 ⑤ 育てている野菜カルテ</h2>
+    <label for="cropSelect" class="input-label">育てる野菜を選ぶ：</label>
+    <select id="cropSelect" class="haru-select"></select>
+    <div style="display:flex; justify-content:space-between; gap:10px; margin-bottom:10px;">
+      <button type="button" id="resetDefaultCropsBtn" class="haru-btn btn-gray" style="font-size:16px; padding:10px; width:48%;">🔄 基本野菜を復元</button>
+      <button type="button" id="deleteCropBtn" class="haru-btn btn-red-outline" style="width:48%;">🗑️ この野菜を削除</button>
+    </div>
+    <div style="background:#F3E8FF; border:2px solid #C084FC; border-radius:12px; padding:10px; margin-bottom:12px;">
+      <div style="font-weight:900; font-size:17px; color:var(--purple); margin-bottom:4px;">✨ AIで新しい野菜を追加する</div>
+      <input type="text" id="newCropNameInput" class="haru-input" placeholder="野菜の名前（例：ハンダマ、青パパイヤ）" style="margin-bottom:6px;">
+      <button type="button" id="aiAddCropBtn" class="haru-btn btn-purple" style="font-size:18px; padding:10px;">🤖 AIに育て方を教えてもらい追加</button>
+    </div>
+    <label for="plantDateInput" class="input-label">苗植え（植え付け）日：</label>
+    <input type="date" id="plantDateInput" class="haru-input">
+    <div id="cropSpecialTips" style="background:#EFEBE9; border-left:6px solid var(--haru-brown); padding:10px; font-size:16px; font-weight:bold; border-radius:4px;"></div>
+  </section>
+
+  <!-- ⑥ AI相談室 -->
+  <section class="haru-card">
+    <h2 class="card-title">🤖 ⑥ AIおしゃべり畑相談室</h2>
+    <p style="font-size:15px; margin:0 0 6px 0; color:#555;">ボタンを押すだけでAIがお答えします（通信量：約2KB）：</p>
+    <div class="prompt-chip-grid">
+      <button type="button" class="prompt-chip" onclick="askAiPreset('leaf_yellow')">🍂 葉っぱが黄色くなってきたけどどうしたらいい？</button>
+      <button type="button" class="prompt-chip" onclick="askAiPreset('typhoon')">🌀 台風や強い風が吹く前にやっておくことは？</button>
+      <button type="button" class="prompt-chip" onclick="askAiPreset('fertilizer')">🌱 実や球を大きくする肥料のタイミングは？</button>
+      <button type="button" class="prompt-chip" onclick="askAiPreset('bug')">🐛 虫がついたときの安全な薬や木酢液のまき方は？</button>
+    </div>
+    <details style="margin-top:6px;">
+      <summary style="font-size:16px; font-weight:bold; color:var(--purple); cursor:pointer;">✏️ 自分で直接質問を書きたいときはこちら</summary>
+      <div style="margin-top:6px;">
+        <input type="text" id="aiCustomInput" class="haru-input" placeholder="聞きたいことを入力...">
+        <button type="button" id="aiCustomSubmitBtn" class="haru-btn btn-purple" style="font-size:17px; padding:10px;">AIに質問する</button>
+      </div>
+    </details>
+    <div id="aiAnswerBox" class="ai-answer-box" style="display:none;">
+      <div style="font-size:15px; color:var(--purple); margin-bottom:2px;">🤖 AIの答え：</div>
+      <div id="aiAnswerContent"></div>
+    </div>
+  </section>
+
+  <!-- ⑦ 畑の広さと畝 -->
+  <section class="haru-card">
+    <h2 class="card-title">📐 ⑦ 畑の広さと畝（列）</h2>
+    <div class="input-grid-2">
+      <div>
+        <label for="areaTsuboInput" class="input-label">面積（坪）：</label>
+        <input type="number" id="areaTsuboInput" class="haru-input" value="30" min="1">
+      </div>
+      <div>
+        <label for="areaM2Input" class="input-label">面積（㎡）：</label>
+        <input type="number" id="areaM2Input" class="haru-input" value="99" min="1">
+      </div>
+    </div>
+    <div class="input-grid-2">
+      <div>
+        <label for="ridgeCountInput" class="input-label">畝の数（列）：</label>
+        <input type="number" id="ridgeCountInput" class="haru-input" value="5" min="1">
+      </div>
+      <div>
+        <label for="ridgeLengthInput" class="input-label">1列の長さ（m）：</label>
+        <input type="number" id="ridgeLengthInput" class="haru-input" value="15" min="1" step="0.5">
+      </div>
+    </div>
+    <div style="background:#E8F5E9; border:2px solid #81C784; border-radius:10px; padding:8px; font-size:16px; font-weight:bold; color:#1B5E20;">
+      📊 畝の全長：<span id="totalRidgeLengthTxt">75</span> m ｜ 🌱 推定株数：約 <span id="estPlantsTxt">500</span> 株
+    </div>
+  </section>
+
+  <!-- ⑧ 今の作業工程 ＆ 作業完了 -->
+  <section class="haru-card">
+    <h2 class="card-title">🚜 ⑧ 今の作業と収穫完了予定</h2>
+    <p style="font-size:15px; margin:0 0 8px 0; color:#555;">※ 終わった作業を押して「作業完了」を押すと、明日の天気から次のおすすめ作業をアドバイスします。</p>
+    <div class="step-grid" id="stepBtnList"></div>
+    <button type="button" id="completeStepBtn" class="haru-btn btn-green">✅ 今日の作業を完了して日記に記録！</button>
+    <div id="tomorrowAdviceBox" class="tomorrow-advice-box" style="display:none;">
+      <div style="font-weight:900; font-size:18px; color:#0369A1; margin-bottom:4px;">📢 【明日の天気連動】明日のおすすめ作業：</div>
+      <div id="tomorrowAdviceContent" style="font-size:16px; font-weight:bold; line-height:1.5; color:#0C4A6E;"></div>
+    </div>
+    <div style="margin-top: 12px;">
+      <label for="harvestSpeedInput" class="input-label">1日に掘る（収穫する）ペース：</label>
+      <select id="harvestSpeedInput" class="haru-select">
+        <option value="1">1日に 1列（畝）ずつ掘る</option>
+        <option value="0.5">1日に 半列（0.5列）ずつゆっくり</option>
+        <option value="2" selected>1日に 2列ずつ掘る（標準）</option>
+        <option value="3">1日に 3列以上（急ピッチ）</option>
+      </select>
+    </div>
+    <div class="harvest-result-box">
+      <div style="font-weight:900; font-size:17px; color:var(--haru-brown);">📅 収穫のスタート日（西暦）：</div>
+      <div id="harvestOutput"></div>
+      <div class="finish-box">
+        <div style="font-weight:900; font-size:18px; color:#D84315;">🏁 植えた分が全部終わる日（収穫完了予定）：</div>
+        <div class="harvest-date-huge" id="harvestFinishDateTxt">計算中...</div>
+        <div style="font-size:15px; font-weight:bold; color:#4E342E; text-align:center;" id="harvestDurationTxt"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑨ 農作業日誌 -->
+  <section class="haru-card">
+    <h2 class="card-title">📖 ⑨ 農作業日誌（ハル日記）</h2>
+    <label for="diaryNoteInput" class="input-label">今日の一言メモ・気づき：</label>
+    <input type="text" id="diaryNoteInput" class="haru-input" placeholder="例：島らっきょう10株若採り。土がよく乾いていた。" style="margin-bottom:6px;">
+    <button type="button" id="saveCustomDiaryBtn" class="haru-btn btn-orange" style="font-size:18px; padding:10px; margin-bottom:10px;">📝 今日のメモを日記に保存</button>
+    <div class="diary-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-weight:900; font-size:17px; color:#78350F;">📜 最近の作業履歴：</span>
+        <button type="button" onclick="clearDiary()" style="background:none; border:none; color:#C62828; font-size:14px; font-weight:bold; cursor:pointer;">全削除</button>
+      </div>
+      <div id="diaryListContainer">
+        <div style="font-size:15px; color:#666; text-align:center; padding:8px;">日誌はまだありません。</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- モバイル通信警告ポップアップ -->
+<div id="gigaWarningModal" class="modal-overlay" style="display: none;">
+  <div class="modal-card">
+    <div style="font-size: 50px; line-height: 1;">⚠️</div>
+    <h3 style="font-size:26px; font-weight:900; color:#C62828; margin:6px 0 10px 0;">ギガが減るよー！</h3>
+    <div style="font-size: 18px; font-weight: bold; text-align: left; background: #FFF3E0; border: 2px solid #FFE082; padding: 10px; border-radius: 12px; margin-bottom: 14px;">
+      Wi-Fiがつながっていないため、<strong>スマホのギガ（通信量）</strong>を使います。<br>
+      減る量は<strong>「約12KB」</strong>（1ギガの約10万分の1）です。
+    </div>
+    <button id="modalOkBtn" class="haru-btn btn-green" style="margin-bottom: 8px;">⭕ 大丈夫、最新天気を読み込む</button>
+    <button id="modalCancelBtn" class="haru-btn btn-gray">❌ 今はやめておく</button>
+  </div>
+</div>
+
+<script>
+const SOILS = {
+  maaji: { name: "島尻マージ（赤土）", limePerM2: 0.15, manurePerM2: 2.0, advice: "【水はけ良好・乾燥固化注意】晴れが続くと表面が固まります。島らっきょうの土寄せは朝露で少し湿り気がある時間帯がベストです。" },
+  jaagaru: { name: "ジャーガル（灰色泥岩質）", limePerM2: 0.10, manurePerM2: 3.0, advice: "【保水大・過湿軟腐病注意】肥沃ですが水が抜けにくい土です。雨上がりは水がたまらないよう溝を切り、軟腐病・白絹病を警戒してください。" },
+  kunigami: { name: "国頭マージ（山原酸性土）", limePerM2: 0.25, manurePerM2: 2.5, advice: "【酸性・養分流亡注意】水はけは良いですが雨で肥料が抜けやすいです。苦土石灰での酸度補正と、雨後のこまめな追肥が効果的です。" },
+  sandy: { name: "海岸・砂質土", limePerM2: 0.10, manurePerM2: 3.5, advice: "【水はけ特大・乾燥肥料切れ注意】水持ちが弱く乾燥しやすい土です。真夏の水切れと潮風に注意し、少量ずつの水やりを心がけましょう。" }
+};
+
+const WEEDS_DEF = [
+  { key: "kugu", name: "ハマスゲ（クグ）", icon: "🌾", cycleDays: 20, desc: "地下に小さな根の塊を作る沖縄最難関の雑草。葉だけでなく根元を深く掘って除草！" },
+  { key: "sashigusa", name: "サシグサ（シロノセンダングサ）", icon: "🌼", cycleDays: 30, desc: "服につく種を大量に作ります。花が咲いて種が落ちる前に根ごと抜いて畑の外へ！" },
+  { key: "ohishiba", name: "オヒシバ・メヒシバ", icon: "🌱", cycleDays: 25, desc: "根を強烈に張り、大きくなると人力では抜けなくなります。草丈5cm以内の若いうちに！" },
+  { key: "suberihiyu", name: "スベリヒユ", icon: "🌿", cycleDays: 22, desc: "多肉質でちぎれた茎からも根が出ます。抜いた後は通路や土の上に放置せず回収！" }
+];
+
+const INITIAL_CROPS = {
+  rakkyo: {
+    name: "島らっきょう", spacingCm: 15,
+    tips: "赤土やジャーガルは水はけを確保！雨上がりの軟腐病に注意。2回の土寄せで白くて太い球に育ちます。",
+    steps: [
+      { id: 1, name: "① 畝立て・元肥（土作り）", days: 0 }, { id: 2, name: "② 植え付け完了（種球植え）", days: 10 },
+      { id: 3, name: "③ 芽が出た（芽出し確認）", days: 25 }, { id: 4, name: "④ 第1回 土寄せ（追肥・除草）", days: 60 },
+      { id: 5, name: "⑤ 第2回 土寄せ（白球を伸ばす）", days: 95 }, { id: 6, name: "⑥ 試し掘り・若採り収穫", days: 130 },
+      { id: 7, name: "⑦ 本収穫（完熟・大玉掘り）", days: 170 }
+    ]
+  },
+  goya: {
+    name: "ゴーヤー（にがうり）", spacingCm: 100,
+    tips: "強風でつるが擦れないようネットを固定。カタブイ（急な雨）後のうどんこ病に気をつけましょう。",
+    steps: [
+      { id: 1, name: "① 苗の植え付け", days: 0 }, { id: 2, name: "② 親づる摘心", days: 15 },
+      { id: 3, name: "③ ネット張り・誘引", days: 25 }, { id: 4, name: "④ 開花・着果確認", days: 45 },
+      { id: 5, name: "⑤ 収穫（青々とした実）", days: 65 }
+    ]
+  },
+  okra: {
+    name: "島オクラ（丸オクラ）", spacingCm: 30,
+    tips: "大きくなっても柔らかいですが、採り遅れるとスジが入ります。下葉かきをこまめに。",
+    steps: [
+      { id: 1, name: "① 種まき・植え付け", days: 0 }, { id: 2, name: "② 本葉が出た（間引き）", days: 14 },
+      { id: 3, name: "③ 開花確認", days: 40 }, { id: 4, name: "④ 収穫開始＆下葉かき", days: 55 }
+    ]
+  },
+  moui: {
+    name: "モーウイ（赤毛瓜）", spacingCm: 80,
+    tips: "敷きわらを敷いて泥はねによる病気を防止。赤茶色になって網目が整ったら収穫です。",
+    steps: [
+      { id: 1, name: "① 植え付け・敷きわら", days: 0 }, { id: 2, name: "② つるの整枝・追肥", days: 25 },
+      { id: 3, name: "③ 果実の肥大確認", days: 50 }, { id: 4, name: "④ 収穫（きれいな赤茶色）", days: 70 }
+    ]
+  },
+  shibui: {
+    name: "冬瓜（シブアイ）", spacingCm: 120,
+    tips: "台風に強く保存がきく重宝野菜。実が大きくなったら下に皿などを敷いて保護します。",
+    steps: [
+      { id: 1, name: "① 植え付け", days: 0 }, { id: 2, name: "② 子づる配置・受粉", days: 30 },
+      { id: 3, name: "③ 玉直し・敷き板設置", days: 60 }, { id: 4, name: "④ 収穫（粉がふいた頃）", days: 90 }
+    ]
+  }
+};
+
+let userCrops = {};
+let currentCropKey = "rakkyo";
+let currentStepId = 4;
+let currentSubRegion = "south";
+
+const ONE_GIGA_KB = 1024 * 1024;
+let weatherCount = 0; let weatherKb = 0;
+let aiCount = 0; let aiKb = 0; let totalUsedKb = 0;
+
+let latestWeatherText = "くもり";
+let latestWindText = "穏やか";
+let latestPop = 20;
+let tomorrowPopForecast = 20;
+let tomorrowWeatherForecast = "くもり";
+
+window.setSubRegion = function(regionKey) {
+  currentSubRegion = regionKey;
+  document.getElementById("tabSouth").className = `region-tab-btn ${regionKey === 'south' ? 'active' : ''}`;
+  document.getElementById("tabCentral").className = `region-tab-btn ${regionKey === 'central' ? 'active' : ''}`;
+  document.getElementById("tabNorth").className = `region-tab-btn ${regionKey === 'north' ? 'active' : ''}`;
+
+  const select = document.getElementById("areaSelect");
+  if (regionKey === 'south') {
+    select.value = "okinawa_south";
+    document.getElementById("currentRegionNameTxt").textContent = "沖縄本島南部（糸満・八重瀬など）";
+    document.getElementById("adviceRegionTxt").textContent = "南部";
+  } else if (regionKey === 'central') {
+    select.value = "okinawa_central";
+    document.getElementById("currentRegionNameTxt").textContent = "沖縄本島中部（沖縄市・うるまなど）";
+    document.getElementById("adviceRegionTxt").textContent = "中部";
+  } else if (regionKey === 'north') {
+    select.value = "okinawa_north";
+    document.getElementById("currentRegionNameTxt").textContent = "沖縄本島北部（名護・やんばるなど）";
+    document.getElementById("adviceRegionTxt").textContent = "北部";
+  }
+  executeWeatherFetch();
+};
+
+document.getElementById("areaSelect").addEventListener("change", (e) => {
+  const val = e.target.value;
+  if (val === "okinawa_south") setSubRegion("south");
+  else if (val === "okinawa_central") setSubRegion("central");
+  else if (val === "okinawa_north") setSubRegion("north");
+  else {
+    document.getElementById("tabSouth").className = "region-tab-btn";
+    document.getElementById("tabCentral").className = "region-tab-btn";
+    document.getElementById("tabNorth").className = "region-tab-btn";
+    document.getElementById("currentRegionNameTxt").textContent = e.target.selectedOptions[0].text;
+    document.getElementById("adviceRegionTxt").textContent = e.target.selectedOptions[0].text;
+    executeWeatherFetch();
+  }
+});
+
+function checkMonthlyReset() {
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+  document.getElementById("currentMonthTxt").textContent = `${now.getMonth() + 1}月`;
+  const savedMonth = localStorage.getItem("haru_last_reset_month");
+  if (savedMonth !== currentMonthKey) {
+    weatherCount = 0; weatherKb = 0; aiCount = 0; aiKb = 0; totalUsedKb = 0;
+    localStorage.setItem("haru_last_reset_month", currentMonthKey);
+    saveGigaState();
+  } else {
+    weatherCount = parseInt(localStorage.getItem("haru_weather_count") || "0", 10);
+    weatherKb = parseInt(localStorage.getItem("haru_weather_kb") || "0", 10);
+    aiCount = parseInt(localStorage.getItem("haru_ai_count") || "0", 10);
+    aiKb = parseInt(localStorage.getItem("haru_ai_kb") || "0", 10);
+  }
+  updateGigaDisplay();
+}
+
+function saveGigaState() {
+  localStorage.setItem("haru_weather_count", weatherCount);
+  localStorage.setItem("haru_weather_kb", weatherKb);
+  localStorage.setItem("haru_ai_count", aiCount);
+  localStorage.setItem("haru_ai_kb", aiKb);
+}
+
+function updateGigaDisplay() {
+  totalUsedKb = weatherKb + aiKb;
+  const remainKb = Math.max(0, ONE_GIGA_KB - totalUsedKb);
+  const remainMb = (remainKb / 1024).toFixed(2);
+  document.getElementById("weatherCountTxt").textContent = `${weatherCount}回`;
+  document.getElementById("weatherKbTxt").textContent = weatherKb.toLocaleString();
+  document.getElementById("aiCountTxt").textContent = `${aiCount}回`;
+  document.getElementById("aiKbTxt").textContent = aiKb.toLocaleString();
+  document.getElementById("usedKbTxt").textContent = `${totalUsedKb.toLocaleString()} KB`;
+  document.getElementById("remainMbTxt").textContent = `${remainMb} MB`;
+  document.getElementById("gigaBar").style.width = `${Math.max(0, (remainKb / ONE_GIGA_KB) * 100)}%`;
+}
+
+function checkNetworkStatus() {
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const netTxt = document.getElementById("netTypeTxt");
+  if (!conn) { netTxt.textContent = "通常接続"; return { isMobile: false }; }
+  if (conn.type === "wifi") {
+    netTxt.innerHTML = "<span style='color:green;'>📶 Wi-Fi（ギガは減りません）</span>";
+    return { isMobile: false };
+  } else {
+    netTxt.innerHTML = "<span style='color:#C62828;'>📱 畑のモバイル通信（4G/5G）</span>";
+    return { isMobile: true };
+  }
+}
+
+function loadCropsFromStorage() {
+  const saved = localStorage.getItem("haru_all_crops");
+  if (saved) {
+    try {
+      userCrops = JSON.parse(saved);
+      if (Object.keys(userCrops).length === 0) userCrops = JSON.parse(JSON.stringify(INITIAL_CROPS));
+    } catch(e) { userCrops = JSON.parse(JSON.stringify(INITIAL_CROPS)); }
+  } else { userCrops = JSON.parse(JSON.stringify(INITIAL_CROPS)); }
+}
+
+function saveCropsToStorage() { localStorage.setItem("haru_all_crops", JSON.stringify(userCrops)); }
+
+function saveCurrentCropState() {
+  if (!currentCropKey) return;
+  const state = {
+    stepId: currentStepId,
+    plantDate: document.getElementById("plantDateInput").value,
+    tsubo: document.getElementById("areaTsuboInput").value,
+    m2: document.getElementById("areaM2Input").value,
+    ridgeCount: document.getElementById("ridgeCountInput").value,
+    ridgeLength: document.getElementById("ridgeLengthInput").value,
+    harvestSpeed: document.getElementById("harvestSpeedInput").value,
+    soil: document.getElementById("soilSelect").value,
+    soilRenewedDate: document.getElementById("soilRenewedDateInput").value,
+    soilCycleYears: document.getElementById("soilCycleYearsInput").value
+  };
+  localStorage.setItem(`haru_crop_state_${currentCropKey}`, JSON.stringify(state));
+}
+
+function restoreCropState(cropKey) {
+  const saved = localStorage.getItem(`haru_crop_state_${cropKey}`);
+  if (saved) {
+    try {
+      const state = JSON.parse(saved);
+      currentStepId = state.stepId || 1;
+      document.getElementById("plantDateInput").value = state.plantDate || "";
+      document.getElementById("areaTsuboInput").value = state.tsubo || 30;
+      document.getElementById("areaM2Input").value = state.m2 || 99;
+      document.getElementById("ridgeCountInput").value = state.ridgeCount || 5;
+      document.getElementById("ridgeLengthInput").value = state.ridgeLength || 15;
+      document.getElementById("harvestSpeedInput").value = state.harvestSpeed || "2";
+      if (state.soil) document.getElementById("soilSelect").value = state.soil;
+      if (state.soilRenewedDate) document.getElementById("soilRenewedDateInput").value = state.soilRenewedDate;
+      if (state.soilCycleYears) document.getElementById("soilCycleYearsInput").value = state.soilCycleYears;
+      calculateSoilRenewalAndMaterials();
+      return;
+    } catch(e){}
+  }
+  currentStepId = (cropKey === "rakkyo") ? 4 : 1;
+  const d = new Date(); d.setDate(d.getDate() - 60);
+  document.getElementById("plantDateInput").value = d.toISOString().split("T")[0];
+  const rDate = new Date(); rDate.setFullYear(rDate.getFullYear() - 1);
+  document.getElementById("soilRenewedDateInput").value = rDate.toISOString().split("T")[0];
+  document.getElementById("soilCycleYearsInput").value = "2";
+  calculateSoilRenewalAndMaterials();
+}
+
+function populateCropSelect() {
+  const select = document.getElementById("cropSelect");
+  select.innerHTML = "";
+  const keys = Object.keys(userCrops);
+  if (keys.length === 0) {
+    const opt = document.createElement("option"); opt.value = ""; opt.textContent = "（野菜なし）";
+    select.appendChild(opt); return;
+  }
+  keys.forEach(k => {
+    const opt = document.createElement("option"); opt.value = k;
+    opt.textContent = `${userCrops[k].name}${k === "rakkyo" ? "（おすすめ！）" : ""}`;
+    if (k === currentCropKey) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+window.applySoilByQuick = function(type) {
+  let detected = "maaji"; let reason = "";
+  switch(type) {
+    case 'itoman': detected = "maaji"; reason = "南部（糸満・八重瀬）の赤土台地から島尻マージをセット"; break;
+    case 'naha': detected = "maaji"; reason = "中南部台地（南城・那覇）の赤土から島尻マージをセット"; break;
+    case 'yonabaru': detected = "jaagaru"; reason = "東海岸（与那原・西原）の泥岩低地からジャーガルをセット"; break;
+    case 'nakagusuku': detected = "jaagaru"; reason = "中城・北中城の粘土質からジャーガルをセット"; break;
+    case 'nago': case 'yanbaru': detected = "kunigami"; reason = "北部・山原の赤黄色土から国頭マージをセット"; break;
+    case 'coast': case 'sand': detected = "sandy"; reason = "海岸・砂地から砂質土をセット"; break;
+    case 'red': detected = "maaji"; reason = "赤土の特徴から島尻マージをセット"; break;
+    case 'gray': detected = "jaagaru"; reason = "灰色粘土の特徴からジャーガルをセット"; break;
+    case 'yellow': detected = "kunigami"; reason = "黄色土の特徴から国頭マージをセット"; break;
+  }
+  document.getElementById("soilSelect").value = detected;
+  updateSoilAdvice(); saveCurrentCropState(); calculateSoilRenewalAndMaterials();
+  const resEl = document.getElementById("quickSoilResultTxt");
+  resEl.style.display = "block";
+  resEl.innerHTML = `✅ ${reason}：「<strong>${SOILS[detected].name}</strong>」`;
+};
+
+function calculateSoilRenewalAndMaterials() {
+  const m2 = parseFloat(document.getElementById("areaM2Input").value) || 99;
+  const tsubo = parseFloat(document.getElementById("areaTsuboInput").value) || 30;
+  document.getElementById("calcAreaTxt").textContent = `${tsubo}坪（${m2.toFixed(1)}㎡）`;
+
+  const soilKey = document.getElementById("soilSelect").value;
+  const soil = SOILS[soilKey] || SOILS.maaji;
+
+  const manureKg = Math.round(m2 * soil.manurePerM2);
+  document.getElementById("manureKgTxt").textContent = manureKg.toLocaleString();
+  document.getElementById("manureBagsTxt").textContent = Math.ceil(manureKg / 15);
+
+  const limeKg = Math.round(m2 * soil.limePerM2);
+  document.getElementById("limeKgTxt").textContent = limeKg.toLocaleString();
+  document.getElementById("limeBagsTxt").textContent = Math.ceil(limeKg / 20);
+
+  const renewedVal = document.getElementById("soilRenewedDateInput").value;
+  if (!renewedVal) return;
+  const renewedDate = new Date(renewedVal);
+  const cycleYears = parseInt(document.getElementById("soilCycleYearsInput").value || "2", 10);
+  const nextDate = new Date(renewedDate);
+  nextDate.setFullYear(nextDate.getFullYear() + cycleYears);
+
+  const dayNames = ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
+  document.getElementById("nextSoilRenewalDateTxt").textContent = `${nextDate.getFullYear()}年 ${nextDate.getMonth() + 1}月 ${nextDate.getDate()}日（${dayNames[nextDate.getDay()]}）頃`;
+
+  const diffDays = Math.ceil((nextDate - new Date()) / (1000 * 60 * 60 * 24));
+  const detailEl = document.getElementById("soilRenewalStatusDetailTxt");
+  if (diffDays > 0) {
+    detailEl.innerHTML = `状態：<strong>適正期間内です</strong>`; detailEl.style.color = "#15803D";
+  } else {
+    detailEl.innerHTML = `⚠️ <strong>予定時期を過ぎています！</strong>天地返しをおすすめします。`; detailEl.style.color = "#C62828";
+  }
+}
+
+document.getElementById("soilRenewedDateInput").addEventListener("change", () => { saveCurrentCropState(); calculateSoilRenewalAndMaterials(); });
+document.getElementById("soilCycleYearsInput").addEventListener("change", () => { saveCurrentCropState(); calculateSoilRenewalAndMaterials(); });
+
+function getWeatherIcon(weatherText, popVal) {
+  const pop = parseInt(popVal || "0", 10);
+  if (/雷/.test(weatherText)) return "⛈️";
+  if (/雨/.test(weatherText) || pop >= 60) return "🌧️";
+  if (/くもり|曇/.test(weatherText) && /晴/.test(weatherText)) return "⛅";
+  if (/くもり|曇/.test(weatherText) || pop >= 40) return "☁️";
+  if (/晴/.test(weatherText) || pop <= 20) return "☀️";
+  return "🌤️";
+}
+
+// ==========================================
+// 6. 改良版：気象庁データ取得（週間予報1日目の降水確率を確実に補正）
+// ==========================================
+async function executeWeatherFetch() {
+  const areaSelectVal = document.getElementById("areaSelect").value;
+  const jmaCode = areaSelectVal.startsWith("okinawa_") ? "471000" : areaSelectVal;
+  const badge = document.getElementById("decisionBadge");
+  badge.className = "decision-badge dec-warn";
+  badge.innerHTML = "<div>☁️ 最新天気を取得中...</div>";
+
+  try {
+    const url = `https://www.jma.go.jp/bosai/forecast/data/forecast/${jmaCode}.json?t=${Date.now()}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    weatherCount++; weatherKb += 12; saveGigaState(); updateGigaDisplay();
+
+    const shortTerm = data[0];
+    const reportDatetime = new Date(shortTerm.reportDatetime).toLocaleString("ja-JP", {
+      month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+    document.getElementById("jmaReportTimeTxt").textContent = `${reportDatetime} 発表`;
+    document.getElementById("jmaFetchStatusTxt").textContent = `通信完了 (${new Date().toLocaleTimeString()})`;
+
+    const weatherSeries = shortTerm.timeSeries[0];
+    const popSeries = shortTerm.timeSeries[1];
+    let areaIdx = (areaSelectVal === "okinawa_north" && weatherSeries.areas.length > 1) ? 1 : 0;
+
+    const weatherArea = weatherSeries.areas[areaIdx] || weatherSeries.areas[0];
+    const popArea = popSeries.areas[areaIdx] || popSeries.areas[0];
+
+    latestWeatherText = weatherArea.weathers ? weatherArea.weathers[0] : "くもり";
+    latestWindText = weatherArea.winds ? weatherArea.winds[0] : "穏やか";
+
+    const now = new Date();
+    let currentPopIndex = 0;
+    if (popSeries.timeDefines && popSeries.timeDefines.length > 0) {
+      for (let i = 0; i < popSeries.timeDefines.length; i++) {
+        if (new Date(popSeries.timeDefines[i]) > now || i === popSeries.timeDefines.length - 1) {
+          currentPopIndex = i; break;
+        }
+      }
+    }
+    latestPop = parseInt(popArea.pops[currentPopIndex] || popArea.pops[0] || "10", 10);
+    tomorrowWeatherForecast = (weatherArea.weathers && weatherArea.weathers.length > 1) ? weatherArea.weathers[1] : latestWeatherText;
+
+    // ★明日の降水確率（popSeriesから翌日の最大確率を計算）
+    let tomorrowMaxPop = 20;
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    if (popSeries.timeDefines && popArea.pops) {
+      const tmrPops = [];
+      popSeries.timeDefines.forEach((tStr, idx) => {
+        const d = new Date(tStr);
+        if (d.getDate() === tomorrow.getDate()) {
+          const val = parseInt(popArea.pops[idx], 10);
+          if (!isNaN(val)) tmrPops.push(val);
+        }
+      });
+      if (tmrPops.length > 0) {
+        tomorrowMaxPop = Math.max(...tmrPops);
+      } else if (popArea.pops.length >= 2) {
+        tomorrowMaxPop = parseInt(popArea.pops[popArea.pops.length - 1], 10) || 20;
+      }
+    }
+    tomorrowPopForecast = tomorrowMaxPop;
+
+    document.getElementById("popVal").innerHTML = `${getWeatherIcon(latestWeatherText, latestPop)} ${latestPop} %`;
+    document.getElementById("windVal").textContent = latestWindText.replace(/の後/g, "→");
+
+    renderHourlyWeather(popSeries, popArea, latestWeatherText);
+    renderWeeklyWeatherCombined(shortTerm, data[1] || null, areaIdx, tomorrowMaxPop);
+    applySoilAndWeatherDecision();
+  } catch (err) {
+    console.error("Fetch Error:", err);
+    badge.className = "decision-badge dec-stop";
+    badge.innerHTML = "<div>電波が届きません</div>";
+    document.getElementById("jmaFetchStatusTxt").textContent = "通信エラー";
+  }
+}
+
+function renderHourlyWeather(popSeries, popArea, weatherText) {
+  const listEl = document.getElementById("hourlyList"); listEl.innerHTML = "";
+  if (!popSeries || !popSeries.timeDefines) return;
+  popSeries.timeDefines.forEach((timeStr, idx) => {
+    const d = new Date(timeStr);
+    const item = document.createElement("div"); item.className = "hourly-item";
+    item.innerHTML = `
+      <div style="font-size:14px; color:#475569;">${d.getDate()}日 ${d.getHours()}時~</div>
+      <div style="font-size:24px; margin:2px 0;">${getWeatherIcon(weatherText, popArea.pops[idx] || "0")}</div>
+      <div style="font-size:18px; color:#0284C7; font-weight:900;">💧${popArea.pops[idx] || "0"}%</div>
+    `;
+    listEl.appendChild(item);
+  });
+}
+
+// 週間予報の合成描画（1日目の降水確率補正済み）
+function renderWeeklyWeatherCombined(shortTerm, weeklyData, areaIdx, tomorrowMaxPop) {
+  const weeklyEl = document.getElementById("weeklyList"); weeklyEl.innerHTML = "";
+  const legend = document.createElement("div"); legend.className = "weekly-legend";
+  legend.innerHTML = `<span>日付 (曜日)</span><span>天気</span><span>降水</span><span>🌡️ <span style="color:#DC2626;">最高</span> / <span style="color:#2563EB;">最低</span></span><span>作業</span>`;
+  weeklyEl.appendChild(legend);
+  if (!weeklyData || !weeklyData.timeSeries) return;
+
+  const dayMap = new Map();
+  const dayNames = ["日","月","火","水","木","金","土"];
+  const wWeatherArea = weeklyData.timeSeries[0].areas[areaIdx] || weeklyData.timeSeries[0].areas[0];
+  const wTempArea = weeklyData.timeSeries[1] ? (weeklyData.timeSeries[1].areas[areaIdx] || weeklyData.timeSeries[1].areas[0]) : null;
+
+  // 週間データの時間枠を取り出し
+  weeklyData.timeSeries[0].timeDefines.forEach((timeStr, idx) => {
+    const d = new Date(timeStr);
+    const dateKey = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    let pop = (wWeatherArea && wWeatherArea.pops) ? (wWeatherArea.pops[idx] || "") : "";
+    
+    // ★もし週間予報の降水確率が空（1日目など）なら、短期予報の降水確率で補填
+    if (!pop || pop === "--" || pop === "") {
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      if (d.getDate() === tomorrow.getDate()) {
+        pop = `${tomorrowMaxPop}`;
+      } else {
+        pop = "--";
+      }
+    }
+
+    dayMap.set(dateKey, {
+      label: `${d.getMonth() + 1}/${d.getDate()} (${dayNames[d.getDay()]})`,
+      mark: getWeatherIcon("", pop), pop: pop, maxTemp: "--", minTemp: "--"
+    });
+  });
+
+  // 週間予報の気温
+  if (wTempArea && weeklyData.timeSeries[1].timeDefines) {
+    weeklyData.timeSeries[1].timeDefines.forEach((timeStr, idx) => {
+      const d = new Date(timeStr);
+      const item = dayMap.get(`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`);
+      if (item) {
+        if (wTempArea.tempsMax && wTempArea.tempsMax[idx]) item.maxTemp = `${wTempArea.tempsMax[idx]}℃`;
+        if (wTempArea.tempsMin && wTempArea.tempsMin[idx]) item.minTemp = `${wTempArea.tempsMin[idx]}℃`;
+      }
+    });
+  }
+
+  // 短期データから明日の気温を正確に抽出
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowKey = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
+  let tmrMax = "--", tmrMin = "--";
+
+  if (shortTerm && shortTerm.timeSeries[2]) {
+    const tempSeries = shortTerm.timeSeries[2];
+    const tempArea = tempSeries.areas[areaIdx] || tempSeries.areas[0];
+    if (tempArea && tempArea.temps && tempSeries.timeDefines) {
+      tempSeries.timeDefines.forEach((tStr, i) => {
+        const tDate = new Date(tStr);
+        if (tDate.getDate() === tomorrow.getDate()) {
+          const val = `${tempArea.temps[i]}℃`;
+          if (tDate.getHours() < 9) { tmrMin = val; } else { tmrMax = val; }
+        }
+      });
+      if (tmrMin === "--" && tempArea.temps.length >= 4) {
+        tmrMin = `${tempArea.temps[2]}℃`; tmrMax = `${tempArea.temps[3]}℃`;
+      } else if (tmrMin === "--" && tempArea.temps.length === 2) {
+        tmrMin = `${tempArea.temps[0]}℃`; tmrMax = `${tempArea.temps[1]}℃`;
+      }
+    }
+  }
+
+  if (dayMap.has(tomorrowKey)) {
+    const item = dayMap.get(tomorrowKey);
+    if (tmrMax !== "--") item.maxTemp = tmrMax;
+    if (tmrMin !== "--") item.minTemp = tmrMin;
+    if (item.pop === "--" || !item.pop) item.pop = `${tomorrowMaxPop}`;
+  } else {
+    dayMap.set(tomorrowKey, {
+      label: `${tomorrow.getMonth() + 1}/${tomorrow.getDate()} (${dayNames[tomorrow.getDay()]})`,
+      mark: getWeatherIcon(tomorrowWeatherForecast, tomorrowMaxPop),
+      pop: `${tomorrowMaxPop}`, maxTemp: tmrMax, minTemp: tmrMin
+    });
+  }
+
+  const sortedDays = Array.from(dayMap.entries()).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+  sortedDays.forEach(([key, info]) => {
+    let badgeClass = "background:#DCFCE7; color:#15803D;"; let badgeText = "作業好機";
+    const popNum = parseInt(info.pop, 10);
+    if (!isNaN(popNum)) {
+      if (popNum >= 60) { badgeClass = "background:#FEE2E2; color:#B91C1C;"; badgeText = "雨・泥水"; }
+      else if (popNum >= 40) { badgeClass = "background:#FEF3C7; color:#B45309;"; badgeText = "雨注意"; }
+    }
+    const row = document.createElement("div"); row.className = "weekly-row";
+    row.innerHTML = `
+      <div class="weekly-date">${info.label}</div>
+      <div class="weekly-mark">${info.mark}</div>
+      <div class="weekly-pop">💧${info.pop}%</div>
+      <div class="weekly-temp"><span class="temp-max">${info.maxTemp}</span> / <span class="temp-min">${info.minTemp}</span></div>
+      <span class="weekly-badge" style="${badgeClass}">${badgeText}</span>
+    `;
+    weeklyEl.appendChild(row);
+  });
+}
+
+function applySoilAndWeatherDecision() {
+  const soil = SOILS[document.getElementById("soilSelect").value] || SOILS.maaji;
+  const isHighWind = /強く|やや強く|突風|強風/.test(latestWindText);
+  const isRain = /雨/.test(latestWeatherText) || latestPop >= 50;
+  const badge = document.getElementById("decisionBadge");
+  const adviceEl = document.getElementById("haruAdvice");
+
+  if (isHighWind && isRain) {
+    badge.className = "decision-badge dec-stop";
+    badge.innerHTML = "<div>🛑 畑仕事はお休み！</div><div style='font-size:18px;'>強風と雨です</div>";
+    adviceEl.textContent = `【${soil.name}】大雨で泥水化します。土寄せ・追肥は肥料が流れるため禁止。`;
+  } else if (isHighWind) {
+    badge.className = "decision-badge dec-stop";
+    badge.innerHTML = "<div>💨 薬かけは見送り！</div><div style='font-size:18px;'>風で薬が飛び散ります</div>";
+    adviceEl.textContent = `【${soil.name}】突風による支柱倒れに注意。強風で土の表面が急激に乾燥します。`;
+  } else if (isRain) {
+    badge.className = "decision-badge dec-warn";
+    badge.innerHTML = "<div>☔ 雨に注意！</div><div style='font-size:18px;'>雨が降る前の作業を優先</div>";
+    adviceEl.textContent = `【${soil.name}】雨前の手早い収穫がおすすめ。土寄せは雨上がりの湿り気を待ってから。`;
+  } else {
+    badge.className = "decision-badge dec-go";
+    badge.innerHTML = "<div>⭕ 今日は畑日和！</div><div style='font-size:18px;'>作業にぴったりです</div>";
+    adviceEl.textContent = `【${soil.name}】天気が落ち着いています。追肥、土寄せ、除草に最適です！`;
+  }
+  renderWeedCards();
+}
+
+function updateSoilAdvice() {
+  const soilKey = document.getElementById("soilSelect").value;
+  document.getElementById("soilAdviceBox").textContent = (SOILS[soilKey] || SOILS.maaji).advice;
+  saveCurrentCropState(); applySoilAndWeatherDecision(); calculateSoilRenewalAndMaterials();
+}
+document.getElementById("soilSelect").addEventListener("change", updateSoilAdvice);
+
+function renderWeedCards() {
+  const container = document.getElementById("weedListContainer"); container.innerHTML = "";
+  const soil = SOILS[document.getElementById("soilSelect").value] || SOILS.maaji;
+  const mult = (latestPop >= 50 || /雨/.test(latestWeatherText)) ? 1.4 : 1.0;
+
+  let easeText = (latestPop >= 60) ? "🌧️ 草引きはお休み（土がドロドロ）" : (soil.drainage === "poor" && latestPop >= 30) ? "💧 過湿（少し乾いてからが吉）" : "✨ 【絶好の草引きチャンス！】根ごと抜けます！";
+  document.getElementById("weedingEaseTxt").textContent = easeText;
+  document.getElementById("weedWeatherSpeedTxt").textContent = mult > 1.0 ? "⚡ 気象影響：雨で成長約1.4倍加速！" : "☀️ 天候安定（通常の伸び）";
+
+  WEEDS_DEF.forEach(w => {
+    const lastClearedStr = localStorage.getItem(`haru_weed_cleared_${w.key}`);
+    const baseDate = lastClearedStr ? new Date(lastClearedStr) : new Date(document.getElementById("plantDateInput").value || new Date());
+    const effectiveDays = Math.round(Math.max(0, Math.floor((new Date() - baseDate) / 86400000)) * mult);
+    const ratio = effectiveDays / w.cycleDays;
+    let lv = "Lv.1 芽生え", pillClass = "w-lv1";
+    if (ratio >= 1.0) { lv = "Lv.4 繁殖警戒！"; pillClass = "w-lv4"; }
+    else if (ratio >= 0.6) { lv = "Lv.3 繁茂期"; pillClass = "w-lv3"; }
+    else if (ratio >= 0.3) { lv = "Lv.2 成長中"; pillClass = "w-lv2"; }
+
+    const card = document.createElement("div"); card.className = "weed-item";
+    card.innerHTML = `
+      <div class="weed-head"><span class="weed-title">${w.icon} ${w.name}</span><span class="weed-badge-pill ${pillClass}">${lv}</span></div>
+      <div style="font-size:15px; color:#444;">経過：約 <strong>${effectiveDays} 日分</strong> 成長 ｜ ${w.desc}</div>
+      <button type="button" class="weed-btn-sm" onclick="resetWeedGrowth('${w.key}', '${w.name}')">🧹 ${w.name} を取ったよ！（リセット）</button>
+    `;
+    container.appendChild(card);
+  });
+}
+
+window.resetWeedGrowth = function(k, n) {
+  localStorage.setItem(`haru_weed_cleared_${k}`, new Date().toISOString());
+  alert(`✅ 「${n}」を取りました！リセットしました。`); renderWeedCards();
+};
+
+document.getElementById("aiAddCropBtn").addEventListener("click", () => {
+  const input = document.getElementById("newCropNameInput"); const name = input.value.trim();
+  if (!name) return alert("野菜名を入れてください");
+  aiCount++; aiKb += 2; saveGigaState(); updateGigaDisplay();
+  const key = "custom_" + Date.now();
+  userCrops[key] = {
+    name: name, spacingCm: 45, tips: `沖縄の気候に合わせた【${name}】の栽培。水はけと風対策を！`,
+    steps: [
+      { id: 1, name: "① 土作り・植え付け", days: 0 }, { id: 2, name: "② 根付き確認・間引き", days: 15 },
+      { id: 3, name: "③ 追肥・土寄せ", days: 35 }, { id: 4, name: "④ 生育旺盛期・草引き", days: 60 },
+      { id: 5, name: "⑤ 収穫適期！", days: 85 }
+    ]
+  };
+  saveCropsToStorage(); currentCropKey = key; populateCropSelect();
+  restoreCropState(key); renderCropSteps(); input.value = "";
+  alert(`🎉 「${name}」を登録しました！`);
+});
+
+document.getElementById("deleteCropBtn").addEventListener("click", () => {
+  if (!currentCropKey || !userCrops[currentCropKey]) return;
+  if (!confirm(`本当に「${userCrops[currentCropKey].name}」を削除しますか？`)) return;
+  delete userCrops[currentCropKey];
+  localStorage.removeItem(`haru_crop_state_${currentCropKey}`);
+  saveCropsToStorage();
+  const keys = Object.keys(userCrops);
+  currentCropKey = keys.length > 0 ? keys[0] : "";
+  if (currentCropKey) restoreCropState(currentCropKey);
+  populateCropSelect(); renderCropSteps(); alert("🗑️ 削除しました。");
+});
+
+document.getElementById("resetDefaultCropsBtn").addEventListener("click", () => {
+  if (!confirm("基本野菜を復元しますか？")) return;
+  userCrops = { ...INITIAL_CROPS, ...userCrops };
+  saveCropsToStorage(); currentCropKey = "rakkyo";
+  populateCropSelect(); restoreCropState(currentCropKey); renderCropSteps(); alert("✅ 復元しました！");
+});
+
+document.getElementById("cropSelect").addEventListener("change", (e) => {
+  saveCurrentCropState(); currentCropKey = e.target.value; restoreCropState(currentCropKey); renderCropSteps();
+});
+
+function askAiPreset(topicKey) {
+  const crop = userCrops[currentCropKey] || { name: "野菜" };
+  const soil = SOILS[document.getElementById("soilSelect").value] || SOILS.maaji;
+  aiCount++; aiKb += 2; saveGigaState(); updateGigaDisplay();
+
+  const answerBox = document.getElementById("aiAnswerBox");
+  const content = document.getElementById("aiAnswerContent");
+  answerBox.style.display = "block";
+  content.innerHTML = "<div>🤔 考え中...</div>";
+
+  setTimeout(() => {
+    let ans = "";
+    if (topicKey === "leaf_yellow") ans = `【${crop.name}の葉が黄色いとき】<br>① 水のやりすぎ・過湿（${soil.name}の排水確認）<br>② 肥料切れ（追肥と土寄せ）<br>③ 下葉なら自然な葉枯れです。`;
+    else if (topicKey === "typhoon") ans = `【${crop.name}の台風・強風対策】<br>① 株元にしっかり土寄せして固定<br>② 台風が過ぎたらすぐに真水で葉の潮風を洗い流すこと！`;
+    else if (topicKey === "fertilizer") ans = `【${crop.name}の肥料タイミング】<br>追肥は土寄せとセットで行い、2〜3週間に1回少量をあげるのが最も太ります。`;
+    else if (topicKey === "bug") ans = `【${crop.name}の安全な虫よけ】<br>木酢液を500倍に薄めて葉裏にスプレー、または朝涼しいうちに見回り捕殺が確実です。`;
+    content.innerHTML = ans;
+  }, 300);
+}
+
+document.getElementById("aiCustomSubmitBtn").addEventListener("click", () => {
+  const q = document.getElementById("aiCustomInput").value.trim(); if (!q) return;
+  aiCount++; aiKb += 2; saveGigaState(); updateGigaDisplay();
+  const answerBox = document.getElementById("aiAnswerBox");
+  answerBox.style.display = "block";
+  document.getElementById("aiAnswerContent").innerHTML = `質問「${q}」について：日当たりの確保と株元の土の乾き具合を指で確認し、朝涼しいうちに手入れしましょう！`;
+});
+
+function renderCropSteps() {
+  const crop = userCrops[currentCropKey];
+  const listEl = document.getElementById("stepBtnList"); listEl.innerHTML = "";
+  if (!crop) return;
+  document.getElementById("cropSpecialTips").textContent = `💡 ${crop.name}の育て方：${crop.tips}`;
+  crop.steps.forEach(step => {
+    const btn = document.createElement("button"); btn.type = "button";
+    btn.className = `step-btn ${step.id === currentStepId ? "active" : ""}`;
+    btn.innerHTML = `${step.name}`;
+    btn.onclick = () => { currentStepId = step.id; saveCurrentCropState(); renderCropSteps(); calculateFieldAndHarvest(); };
+    listEl.appendChild(btn);
+  });
+  calculateFieldAndHarvest();
+}
+
+function calculateFieldAndHarvest() {
+  const crop = userCrops[currentCropKey]; if (!crop) return;
+  const ridgeCount = parseFloat(document.getElementById("ridgeCountInput").value) || 0;
+  const ridgeLength = parseFloat(document.getElementById("ridgeLengthInput").value) || 0;
+  const totalLength = ridgeCount * ridgeLength;
+  document.getElementById("totalRidgeLengthTxt").textContent = totalLength.toFixed(1);
+
+  const rows = (currentCropKey === "rakkyo") ? 2 : 1;
+  document.getElementById("estPlantsTxt").textContent = Math.round(totalLength * (100 / crop.spacingCm) * rows).toLocaleString();
+
+  const currentStep = crop.steps.find(s => s.id === currentStepId) || crop.steps[0];
+  const remainDaysToStart = Math.max(0, crop.steps[crop.steps.length - 1].days - currentStep.days);
+  const startHarvestDate = new Date(); startHarvestDate.setDate(startHarvestDate.getDate() + remainDaysToStart);
+
+  const out = document.getElementById("harvestOutput");
+  if (currentCropKey === "rakkyo") {
+    const wakaDate = new Date(); wakaDate.setDate(wakaDate.getDate() + Math.max(0, 130 - currentStep.days));
+    out.innerHTML = `
+      <div style="font-size:17px; font-weight:bold;">🥬 若採り開始：<strong>${wakaDate.getFullYear()}年${wakaDate.getMonth() + 1}月${wakaDate.getDate()}日頃</strong></div>
+      <div style="font-size:17px; font-weight:bold;">🧅 本収穫開始：<strong>${startHarvestDate.getFullYear()}年${startHarvestDate.getMonth() + 1}月${startHarvestDate.getDate()}日頃</strong></div>
+    `;
+  } else {
+    out.innerHTML = `<div class="harvest-date-huge">${startHarvestDate.getFullYear()}年 ${startHarvestDate.getMonth() + 1}月 ${startHarvestDate.getDate()}日頃 からスタート</div>`;
+  }
+
+  const speed = parseFloat(document.getElementById("harvestSpeedInput").value) || 1;
+  const harvestDurationDays = Math.ceil(ridgeCount / speed);
+  const finishDate = new Date(startHarvestDate); finishDate.setDate(finishDate.getDate() + harvestDurationDays);
+
+  document.getElementById("harvestFinishDateTxt").textContent = `${finishDate.getFullYear()}年 ${finishDate.getMonth() + 1}月 ${finishDate.getDate()}日頃 に完了！`;
+  document.getElementById("harvestDurationTxt").textContent = `（全 ${ridgeCount} 列 × 1日 ${speed} 列ペース ＝ 約 ${harvestDurationDays} 日間）`;
+  renderWeedCards();
+}
+
+document.getElementById("completeStepBtn").addEventListener("click", () => {
+  const crop = userCrops[currentCropKey]; if (!crop) return;
+  const currentStep = crop.steps.find(s => s.id === currentStepId) || crop.steps[0];
+  const nextStep = crop.steps[crop.steps.findIndex(s => s.id === currentStepId) + 1];
+
+  let advice = (tomorrowPopForecast >= 50 || /雨/.test(tomorrowWeatherForecast))
+    ? `🌧️ 明日は雨（降水確率${tomorrowPopForecast}%）予報！土寄せ・追肥は見送り、排水溝の確認を優先しましょう。`
+    : (tomorrowPopForecast <= 20)
+    ? `☀️ 明日は畑日和（降水確率${tomorrowPopForecast}%）！次の工程【<strong>${nextStep ? nextStep.name : '収穫・調整'}</strong>】を前倒しで進めるチャンスです。`
+    : `⛅ 明日は曇りベース（降水確率${tomorrowPopForecast}%）。土が適度にしっとりして草引きや支柱点検に適しています。`;
+
+  document.getElementById("tomorrowAdviceBox").style.display = "block";
+  document.getElementById("tomorrowAdviceContent").innerHTML = advice;
+
+  const now = new Date();
+  addDiaryEntry({
+    date: `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`,
+    weather: `${latestWeatherText} (降水${latestPop}%)`,
+    work: `【${crop.name}】${currentStep.name} 完了`, memo: "明日の作業アドバイス確認済み"
+  });
+  alert(`🎉 「${currentStep.name}」を完了記録しました！`);
+});
+
+function loadDiary() {
+  const container = document.getElementById("diaryListContainer");
+  const diaryJson = localStorage.getItem("haru_farming_diary");
+  if (!diaryJson) return;
+  try {
+    const list = JSON.parse(diaryJson);
+    if (list.length === 0) return;
+    container.innerHTML = "";
+    list.slice(0, 10).forEach(item => {
+      const div = document.createElement("div"); div.className = "diary-item";
+      div.innerHTML = `
+        <div style="font-weight:900; color:#78350F;">📅 ${item.date} ｜ 🌤️ ${item.weather}</div>
+        <div style="font-weight:bold; color:#15803D;">🚜 ${item.work}</div>
+        <div style="font-size:14px; color:#444;">💬 ${item.memo || ""}</div>
+      `;
+      container.appendChild(div);
+    });
+  } catch(e) {}
+}
+
+function addDiaryEntry(entry) {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem("haru_farming_diary") || "[]"); } catch(e){}
+  list.unshift(entry);
+  localStorage.setItem("haru_farming_diary", JSON.stringify(list));
+  loadDiary();
+}
+
+document.getElementById("saveCustomDiaryBtn").addEventListener("click", () => {
+  const note = document.getElementById("diaryNoteInput").value.trim(); if (!note) return alert("メモを入れてください");
+  const crop = userCrops[currentCropKey];
+  const now = new Date();
+  addDiaryEntry({
+    date: `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`,
+    weather: `${latestWeatherText} (降水${latestPop}%)`,
+    work: `【${crop ? crop.name : "畑"}】メモ記録`, memo: note
+  });
+  document.getElementById("diaryNoteInput").value = ""; alert("📝 日記に保存しました！");
+});
+
+window.clearDiary = function() {
+  if (confirm("日記をすべて消去しますか？")) {
+    localStorage.removeItem("haru_farming_diary");
+    document.getElementById("diaryListContainer").innerHTML = "<div style='font-size:15px; color:#666; text-align:center; padding:8px;'>日誌を消去しました。</div>";
+  }
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+  checkMonthlyReset(); loadCropsFromStorage(); loadDiary();
+  const keys = Object.keys(userCrops);
+  if (keys.length > 0 && !userCrops[currentCropKey]) currentCropKey = keys[0];
+  populateCropSelect(); restoreCropState(currentCropKey); renderCropSteps();
+  updateSoilAdvice(); calculateFieldAndHarvest(); renderWeedCards();
+  if (checkNetworkStatus().isMobile) document.getElementById("gigaWarningModal").style.display = "flex";
+  else executeWeatherFetch();
+});
+
+document.getElementById("modalOkBtn").addEventListener("click", () => {
+  document.getElementById("gigaWarningModal").style.display = "none"; executeWeatherFetch();
+});
+document.getElementById("modalCancelBtn").addEventListener("click", () => {
+  document.getElementById("gigaWarningModal").style.display = "none";
+});
+document.getElementById("fetchBtn").addEventListener("click", () => {
+  if (checkNetworkStatus().isMobile) document.getElementById("gigaWarningModal").style.display = "flex";
+  else executeWeatherFetch();
+});
+
+document.getElementById("areaTsuboInput").addEventListener("input", (e) => {
+  document.getElementById("areaM2Input").value = ((parseFloat(e.target.value) || 0) * 3.30578).toFixed(1);
+  saveCurrentCropState(); calculateFieldAndHarvest(); calculateSoilRenewalAndMaterials();
+});
+document.getElementById("areaM2Input").addEventListener("input", (e) => {
+  document.getElementById("areaTsuboInput").value = ((parseFloat(e.target.value) || 0) / 3.30578).toFixed(1);
+  saveCurrentCropState(); calculateFieldAndHarvest(); calculateSoilRenewalAndMaterials();
+});
+document.getElementById("ridgeCountInput").addEventListener("input", () => { saveCurrentCropState(); calculateFieldAndHarvest(); });
+document.getElementById("ridgeLengthInput").addEventListener("input", () => { saveCurrentCropState(); calculateFieldAndHarvest(); });
+document.getElementById("harvestSpeedInput").addEventListener("change", () => { saveCurrentCropState(); calculateFieldAndHarvest(); });
+document.getElementById("plantDateInput").addEventListener("change", () => { saveCurrentCropState(); calculateFieldAndHarvest(); });
+</script>
+
+</body>
+</html>
