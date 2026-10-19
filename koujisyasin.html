@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>かんたん工事・作業写真帳作成ツール（エラー対策・手動調整版）</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-hover: #15803d;
+    --danger: #dc2626;
+    --bg: #cbd5e1;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    font-family: "MS Mincho", "Yu Mincho", "Hiragino Mincho ProN", serif;
+    color: #111;
+    overflow-x: hidden;
+  }
+
+  /* 上部操作パネル：固定（sticky）を解除して通常配置に変更 */
+  .control-panel {
+    font-family: "Meiryo", "Yu Gothic", "Hiragino Sans", sans-serif;
+    background: #ffffff;
+    border-bottom: 3px solid var(--primary);
+    padding: 10px 16px;
+    position: static; /* 固定解除 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+
+  .panel-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .panel-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .view-zoom-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #334155;
+  }
+
+  .btn {
+    font-family: "Meiryo", "Yu Gothic", sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-hover); }
+
+  .btn-success {
+    background: var(--success);
+    color: white;
+    font-size: 13.5px;
+    padding: 7px 16px;
+  }
+  .btn-success:hover { background: var(--success-hover); }
+
+  .btn-outline {
+    background: #fff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  .btn-outline:hover { background: #f8fafc; }
+  .btn-outline.active {
+    background: #dbeafe;
+    border-color: var(--primary);
+    color: #1e40af;
+  }
+
+  .btn-danger-outline {
+    background: #fff;
+    color: var(--danger);
+    border: 1px solid #fca5a5;
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .guide-banner {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: #1e3a8a;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* A4用紙プレビュー領域 */
+  .pages-container {
+    padding: 16px 10px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+  }
+
+  .page-scale-shell {
+    position: relative;
+    margin: 0 auto;
+  }
+
+  .a4-page {
+    width: 794px;
+    height: 1123px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    padding: 40px 48px 32px 54px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transform-origin: top left;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .entries-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 1018px;
+  }
+
+  .photo-entry-block {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  /* 各段の上の操作バー（印刷時は非表示） */
+  .entry-screen-toolbar {
+    font-family: "Meiryo", sans-serif;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 25px;
+    gap: 12px;
+  }
+
+  .photo-control-bar {
+    width: 424px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  .photo-control-bar input[type="range"] {
+    width: 80px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--primary);
+  }
+
+  .mini-ctrl-btn {
+    font-family: "Meiryo", sans-serif;
+    font-size: 11px;
+    padding: 2px 5px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #1e293b;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .mini-ctrl-btn:hover { background: #e2e8f0; }
+  .mini-ctrl-btn.primary-mini {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+  }
+
+  .quick-fill-bar {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 3px;
+    align-items: center;
+  }
+
+  .photo-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    height: 304px;
+    gap: 20px;
+  }
+
+  /* 左側：写真枠 */
+  .photo-box {
+    width: 424px;
+    height: 304px;
+    border: 1.5px solid #000;
+    position: relative;
+    background: #f8fafc;
+    overflow: hidden;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .photo-placeholder {
+    font-family: "Meiryo", sans-serif;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #475569;
+    padding: 16px;
+    cursor: pointer;
+  }
+  .photo-placeholder:hover { background: #eff6ff; }
+  .photo-placeholder .icon { font-size: 30px; margin-bottom: 6px; }
+  .photo-placeholder .main-text { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 4px; }
+  .photo-placeholder .sub-text { font-size: 11.5px; color: #64748b; }
+
+  .photo-Editable-wrap {
+    position: absolute;
+    display: none;
+    cursor: grab;
+  }
+  .photo-Editable-wrap:active { cursor: grabbing; }
+  .photo-box.has-image .photo-Editable-wrap {
+    display: block;
+    outline: 1px dashed rgba(37, 99, 235, 0.6);
+  }
+
+  .photo-Editable-wrap img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  body.grayscale-mode .photo-Editable-wrap img {
+    filter: grayscale(100%) contrast(1.08);
+  }
+
+  .resize-handle {
+    position: absolute;
+    background: var(--primary);
+    color: #fff;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Meiryo", sans-serif;
+    font-size: 10px;
+    font-weight: bold;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .handle-se {
+    right: 0;
+    bottom: 0;
+    padding: 3px 7px;
+    border-top-left-radius: 6px;
+    cursor: nwse-resize;
+  }
+  .handle-e {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 34px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    cursor: ew-resize;
+  }
+  .handle-s {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 34px;
+    height: 14px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    cursor: ns-resize;
+  }
+
+  .move-hint-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(15, 23, 42, 0.65);
+    color: #fff;
+    font-family: "Meiryo", sans-serif;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  /* 右側：情報テーブル */
+  .info-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .info-table {
+    width: 100%;
+    height: 304px;
+    border-collapse: collapse;
+    border: 1.5px solid #000;
+    table-layout: fixed;
+  }
+
+  .info-table tr { height: calc(304px / 9); }
+  .info-table td {
+    border-bottom: 1px solid #000;
+    padding: 0 6px;
+    vertical-align: middle;
+    font-size: 13px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .info-table tr:last-child td { border-bottom: none; }
+
+  .cell-inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* 項目名（見出しラベル）の入力用スタイル */
+  .field-label-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: "MS Mincho", "Yu Mincho", "Hiragino Mincho ProN", serif;
+    font-size: 13px;
+    color: #000;
+    padding: 2px 0;
+    flex-shrink: 0;
+  }
+  .field-label-input:focus { background: #fef9c3; }
+  .label-w-standard { width: 68px; }
+  .label-w-title    { width: 95px; }
+
+  .field-input {
+    flex: 1;
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: "MS Mincho", "Yu Mincho", "Hiragino Mincho ProN", serif;
+    font-size: 13.5px;
+    color: #000;
+    padding: 2px 4px;
+  }
+  .field-input:focus { background: #fef9c3; }
+  .field-input.spaced-center { text-align: center; letter-spacing: 0.6em; font-size: 14px; }
+  .field-input.title-spaced { letter-spacing: 0.35em; padding-left: 6px; }
+
+  .page-footer {
+    text-align: center;
+    font-size: 13px;
+    height: 20px;
+    line-height: 20px;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  @media print {
+    body { background: #fff; overflow: visible; }
+    .control-panel,
+    .entry-screen-toolbar,
+    .resize-handle,
+    .move-hint-badge,
+    .photo-placeholder {
+      display: none !important;
+    }
+    .pages-container { padding: 0 !important; gap: 0 !important; display: block !important; }
+    .page-scale-shell {
+      width: 210mm !important;
+      height: 297mm !important;
+      margin: 0 !important;
+      page-break-after: always;
+      break-after: page;
+    }
+    .page-scale-shell:last-child { page-break-after: auto; break-after: auto; }
+    .a4-page {
+      position: static !important;
+      transform: none !important;
+      width: 210mm !important;
+      height: 297mm !important;
+      box-shadow: none !important;
+      padding: 12mm 13mm 10mm 15mm !important;
+    }
+    .entries-wrapper { height: 266mm !important; }
+    .photo-entry { height: 83mm !important; }
+    .photo-box { width: 112mm !important; height: 83mm !important; background: #fff !important; }
+    .photo-Editable-wrap { outline: none !important; }
+    .info-table { height: 83mm !important; }
+    .info-table tr { height: calc(83mm / 9) !important; }
+    .field-input:focus,
+    .field-label-input:focus { background: transparent !important; }
+    .field-input::placeholder,
+    .field-label-input::placeholder { color: transparent !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="control-panel">
+  <div class="panel-inner">
+    <div class="panel-top-row">
+      <h1 class="panel-title">📸 かんたん工事・作業写真帳ツール</h1>
+
+      <div class="view-zoom-box">
+        <span>🖥️ 表示倍率：</span>
+        <button type="button" class="btn btn-outline" id="btnFitPage" onclick="setZoomMode('fit-page')">📄 ページ全体表示</button>
+        <button type="button" class="btn btn-outline" id="btnFitWidth" onclick="setZoomMode('fit-width')">↔️ 横幅に合わせる</button>
+        <button type="button" class="btn btn-outline" onclick="changeManualZoom(-0.1)">－</button>
+        <span id="zoomLabel" style="min-width:40px; text-align:center; font-weight:bold;">111%</span>
+        <button type="button" class="btn btn-outline" onclick="changeManualZoom(0.1)">＋</button>
+      </div>
+
+      <div style="display:flex; gap:6px;">
+        <button type="button" class="btn btn-outline" onclick="saveCurrentHtmlFile()" title="入力した文字と写真を含めてファイル保存します">
+          💾 作業状態をファイル保存
+        </button>
+        <button type="button" class="btn btn-success" onclick="safePrint()">
+          🖨️ A4で印刷 ／ PDF保存
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-actions">
+      <input type="file" id="bulkFileInput" accept="image/*" multiple="" style="display:none" onchange="handleBulkFiles(this.files)">
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('bulkFileInput').click()">
+        📂 SDカード・PCから写真をまとめて選ぶ
+      </button>
+
+      <button type="button" class="btn btn-outline" onclick="copyFirstEntryToAll()">
+        📋 1段目の共通項目を全段にコピー
+      </button>
+
+      <button type="button" class="btn btn-outline" id="grayscaleBtn" onclick="toggleGrayscale()">
+        ⚫ 白黒モード：OFF
+      </button>
+
+      <button type="button" class="btn btn-outline" onclick="addPage()">
+        ➕ ページ追加
+      </button>
+
+      <button type="button" class="btn btn-danger-outline" onclick="removeLastPage()">
+        🗑️ 最終ページ削除
+      </button>
+    </div>
+
+    <div class="guide-banner">
+      <span>💡 <b>サイズ調整：</b>各写真の上の<b>「🔍スライダー」</b>、または写真右下の青い<b>「↘ サイズ調整」</b>をドラッグすると手動で自由に変更できます。</span>
+      <span>💡 <b>位置移動：</b>写真の上をドラッグすると上下左右に動かせます。</span>
+      <span>💡 <b>項目名編集：</b>「工 種 ：」などの見出しラベルも直接クリックして自由に打ち替えられます。</span>
+    </div>
+  </div>
+</div>
+
+<div class="pages-container" id="pagesContainer"><div class="page-scale-shell" style="width: 878px; height: 1241px;">
+      <div class="a4-page" style="transform: scale(1.10516);">
+        <div class="entries-wrapper">
+          
+      <div class="photo-entry-block">
+        <div class="entry-screen-toolbar">
+          <div class="photo-control-bar">
+            <button type="button" class="mini-ctrl-btn primary-mini" onclick="triggerSelectFromBtn(this)">📁写真選択</button>
+            <span>🔍</span>
+            <button type="button" class="mini-ctrl-btn" onclick="stepPhotoZoom(this, -10)">－</button>
+            <input type="range" class="photo-zoom-slider" min="20" max="250" value="100" oninput="onSliderZoom(this)">
+            <button type="button" class="mini-ctrl-btn" onclick="stepPhotoZoom(this, 10)">＋</button>
+            <button type="button" class="mini-ctrl-btn" onclick="fitPhotoContain(this)">全体</button>
+            <button type="button" class="mini-ctrl-btn" onclick="fitPhotoStretch(this)">枠いっぱい</button>
+            <button type="button" class="mini-ctrl-btn" onclick="rotatePhoto(this)">🔄</button>
+            <button type="button" class="mini-ctrl-btn" onclick="clearPhoto(this)" style="color:#dc2626;">✕</button>
+          </div>
+
+          <div class="quick-fill-bar">
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '撤去前')">撤去前</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '撤去後')">撤去後</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '作業前')">作業前</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '作業中')">作業中</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '完了')">完了</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '')">クリア</button>
+          </div>
+        </div>
+
+        <div class="photo-entry">
+          <div class="photo-box" ondragover="handleDragOver(event, this)" ondragleave="handleDragLeave(event, this)" ondrop="handleDrop(event, this)">
+            <div class="photo-placeholder" onclick="triggerSingleSelect(this.closest('.photo-entry-block'))" style="display: flex;">
+              <span class="icon">📷</span>
+              <span class="main-text">ここをクリックして写真を選択</span>
+              <span class="sub-text">（SDカードからドラッグ＆ドロップも可）</span>
+            </div>
+
+            <div class="photo-Editable-wrap" onmousedown="startPhotoDrag(event, this)" ontouchstart="startPhotoDrag(event, this)" data-base-w="424" data-base-h="238.34857142857143" style="width: 424px; height: 238.349px; left: 0px; top: 32.8257px;">
+              <img src="" alt="工事写真">
+              <div class="move-hint-badge">✥ ドラッグで移動</div>
+              <div class="resize-handle handle-e" onmousedown="startPhotoResize(event, this, 'e')" ontouchstart="startPhotoResize(event, this, 'e')">↔</div>
+              <div class="resize-handle handle-s" onmousedown="startPhotoResize(event, this, 's')" ontouchstart="startPhotoResize(event, this, 's')">↕</div>
+              <div class="resize-handle handle-se" onmousedown="startPhotoResize(event, this, 'se')" ontouchstart="startPhotoResize(event, this, 'se')">↘ サイズ調整</div>
+            </div>
+          </div>
+
+          <div class="info-column">
+            <table class="info-table">
+              <tbody>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-koshu" value="工 種 ："><input type="text" class="field-input input-koshu" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-shubetsu" value="種 別 ："><input type="text" class="field-input input-shubetsu" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-title label-title" value="写真タイトル："><input type="text" class="field-input title-spaced input-title" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-location" value="撮影箇所："><input type="text" class="field-input input-location" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-desc" value="状況説明："><input type="text" class="field-input input-desc" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input spaced-center input-status-line" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input input-free1" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input input-free2" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-witness" value="立 会 者 "><input type="text" class="field-input input-witness" value=""></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    
+          
+      <div class="photo-entry-block">
+        <div class="entry-screen-toolbar">
+          <div class="photo-control-bar">
+            <button type="button" class="mini-ctrl-btn primary-mini" onclick="triggerSelectFromBtn(this)">📁写真選択</button>
+            <span>🔍</span>
+            <button type="button" class="mini-ctrl-btn" onclick="stepPhotoZoom(this, -10)">－</button>
+            <input type="range" class="photo-zoom-slider" min="20" max="250" value="100" oninput="onSliderZoom(this)">
+            <button type="button" class="mini-ctrl-btn" onclick="stepPhotoZoom(this, 10)">＋</button>
+            <button type="button" class="mini-ctrl-btn" onclick="fitPhotoContain(this)">全体</button>
+            <button type="button" class="mini-ctrl-btn" onclick="fitPhotoStretch(this)">枠いっぱい</button>
+            <button type="button" class="mini-ctrl-btn" onclick="rotatePhoto(this)">🔄</button>
+            <button type="button" class="mini-ctrl-btn" onclick="clearPhoto(this)" style="color:#dc2626;">✕</button>
+          </div>
+
+          <div class="quick-fill-bar">
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '撤去前')">撤去前</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '撤去後')">撤去後</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '作業前')">作業前</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '作業中')">作業中</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '完了')">完了</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '')">クリア</button>
+          </div>
+        </div>
+
+        <div class="photo-entry">
+          <div class="photo-box" ondragover="handleDragOver(event, this)" ondragleave="handleDragLeave(event, this)" ondrop="handleDrop(event, this)">
+            <div class="photo-placeholder" onclick="triggerSingleSelect(this.closest('.photo-entry-block'))" style="display: flex;">
+              <span class="icon">📷</span>
+              <span class="main-text">ここをクリックして写真を選択</span>
+              <span class="sub-text">（SDカードからドラッグ＆ドロップも可）</span>
+            </div>
+
+            <div class="photo-Editable-wrap" onmousedown="startPhotoDrag(event, this)" ontouchstart="startPhotoDrag(event, this)" data-base-w="424" data-base-h="238.34857142857143" style="width: 424px; height: 238.349px; left: 0px; top: 32.8257px;">
+              <img src="" alt="工事写真">
+              <div class="move-hint-badge">✥ ドラッグで移動</div>
+              <div class="resize-handle handle-e" onmousedown="startPhotoResize(event, this, 'e')" ontouchstart="startPhotoResize(event, this, 'e')">↔</div>
+              <div class="resize-handle handle-s" onmousedown="startPhotoResize(event, this, 's')" ontouchstart="startPhotoResize(event, this, 's')">↕</div>
+              <div class="resize-handle handle-se" onmousedown="startPhotoResize(event, this, 'se')" ontouchstart="startPhotoResize(event, this, 'se')">↘ サイズ調整</div>
+            </div>
+          </div>
+
+          <div class="info-column">
+            <table class="info-table">
+              <tbody>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-koshu" value="工 種 ："><input type="text" class="field-input input-koshu" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-shubetsu" value="種 別 ："><input type="text" class="field-input input-shubetsu" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-title label-title" value="写真タイトル："><input type="text" class="field-input title-spaced input-title" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-location" value="撮影箇所："><input type="text" class="field-input input-location" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-desc" value="状況説明："><input type="text" class="field-input input-desc" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input spaced-center input-status-line" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input input-free1" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input input-free2" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-witness" value="立 会 者 "><input type="text" class="field-input input-witness" value=""></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    
+          
+      <div class="photo-entry-block">
+        <div class="entry-screen-toolbar">
+          <div class="photo-control-bar">
+            <button type="button" class="mini-ctrl-btn primary-mini" onclick="triggerSelectFromBtn(this)">📁写真選択</button>
+            <span>🔍</span>
+            <button type="button" class="mini-ctrl-btn" onclick="stepPhotoZoom(this, -10)">－</button>
+            <input type="range" class="photo-zoom-slider" min="20" max="250" value="100" oninput="onSliderZoom(this)">
+            <button type="button" class="mini-ctrl-btn" onclick="stepPhotoZoom(this, 10)">＋</button>
+            <button type="button" class="mini-ctrl-btn" onclick="fitPhotoContain(this)">全体</button>
+            <button type="button" class="mini-ctrl-btn" onclick="fitPhotoStretch(this)">枠いっぱい</button>
+            <button type="button" class="mini-ctrl-btn" onclick="rotatePhoto(this)">🔄</button>
+            <button type="button" class="mini-ctrl-btn" onclick="clearPhoto(this)" style="color:#dc2626;">✕</button>
+          </div>
+
+          <div class="quick-fill-bar">
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '撤去前')">撤去前</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '撤去後')">撤去後</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '作業前')">作業前</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '作業中')">作業中</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '完了')">完了</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '')">クリア</button>
+          </div>
+        </div>
+
+        <div class="photo-entry">
+          <div class="photo-box" ondragover="handleDragOver(event, this)" ondragleave="handleDragLeave(event, this)" ondrop="handleDrop(event, this)">
+            <div class="photo-placeholder" onclick="triggerSingleSelect(this.closest('.photo-entry-block'))" style="display: flex;">
+              <span class="icon">📷</span>
+              <span class="main-text">ここをクリックして写真を選択</span>
+              <span class="sub-text">（SDカードからドラッグ＆ドロップも可）</span>
+            </div>
+
+            <div class="photo-Editable-wrap" onmousedown="startPhotoDrag(event, this)" ontouchstart="startPhotoDrag(event, this)" data-base-w="424" data-base-h="238.34857142857143" style="width: 424px; height: 238.349px; left: 0px; top: 32.8257px;">
+              <img src="" alt="工事写真">
+              <div class="move-hint-badge">✥ ドラッグで移動</div>
+              <div class="resize-handle handle-e" onmousedown="startPhotoResize(event, this, 'e')" ontouchstart="startPhotoResize(event, this, 'e')">↔</div>
+              <div class="resize-handle handle-s" onmousedown="startPhotoResize(event, this, 's')" ontouchstart="startPhotoResize(event, this, 's')">↕</div>
+              <div class="resize-handle handle-se" onmousedown="startPhotoResize(event, this, 'se')" ontouchstart="startPhotoResize(event, this, 'se')">↘ サイズ調整</div>
+            </div>
+          </div>
+
+          <div class="info-column">
+            <table class="info-table">
+              <tbody>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-koshu" value="工 種 ："><input type="text" class="field-input input-koshu" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-shubetsu" value="種 別 ："><input type="text" class="field-input input-shubetsu" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-title label-title" value="写真タイトル："><input type="text" class="field-input title-spaced input-title" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-location" value="撮影箇所："><input type="text" class="field-input input-location" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-desc" value="状況説明："><input type="text" class="field-input input-desc" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input spaced-center input-status-line" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input input-free1" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input input-free2" value=""></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-witness" value="立 会 者 "><input type="text" class="field-input input-witness" value=""></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    
+        </div>
+        <div class="page-footer">1</div>
+      </div>
+    </div></div>
+<input type="file" id="singleFileInput" accept="image/*" style="display:none">
+
+<script>
+  const PAGE_BASE_W = 794;
+  const PAGE_BASE_H = 1123;
+  const BOX_W = 424;
+  const BOX_H = 304;
+
+  let currentPageScale = 1;
+  let zoomMode = 'fit-page';
+  let currentTargetEntry = null;
+  let isGrayscale = false;
+
+  const defaultPresets = [
+    { title: '撤去前', statusLine: '撤去前' },
+    { title: '撤去後', statusLine: '撤去後' },
+    { title: '撤去後', statusLine: '撤去後' }
+  ];
+
+  function createEntryHTML(entryIndexInPage, isFirstPage) {
+    const preset = isFirstPage ? defaultPresets[entryIndexInPage] : { title: '', statusLine: '' };
+    return `
+      <div class="photo-entry-block">
+        <div class="entry-screen-toolbar">
+          <div class="photo-control-bar">
+            <button type="button" class="mini-ctrl-btn primary-mini" onclick="triggerSelectFromBtn(this)">📁写真選択</button>
+            <span>🔍</span>
+            <button type="button" class="mini-ctrl-btn" onclick="stepPhotoZoom(this, -10)">－</button>
+            <input type="range" class="photo-zoom-slider" min="20" max="250" value="100" oninput="onSliderZoom(this)">
+            <button type="button" class="mini-ctrl-btn" onclick="stepPhotoZoom(this, 10)">＋</button>
+            <button type="button" class="mini-ctrl-btn" onclick="fitPhotoContain(this)">全体</button>
+            <button type="button" class="mini-ctrl-btn" onclick="fitPhotoStretch(this)">枠いっぱい</button>
+            <button type="button" class="mini-ctrl-btn" onclick="rotatePhoto(this)">🔄</button>
+            <button type="button" class="mini-ctrl-btn" onclick="clearPhoto(this)" style="color:#dc2626;">✕</button>
+          </div>
+
+          <div class="quick-fill-bar">
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '撤去前')">撤去前</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '撤去後')">撤去後</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '作業前')">作業前</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '作業中')">作業中</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '完了')">完了</button>
+            <button type="button" class="mini-ctrl-btn" onclick="applyQuickText(this, '')">クリア</button>
+          </div>
+        </div>
+
+        <div class="photo-entry">
+          <div class="photo-box" ondragover="handleDragOver(event, this)" ondragleave="handleDragLeave(event, this)" ondrop="handleDrop(event, this)">
+            <div class="photo-placeholder" onclick="triggerSingleSelect(this.closest('.photo-entry-block'))">
+              <span class="icon">📷</span>
+              <span class="main-text">ここをクリックして写真を選択</span>
+              <span class="sub-text">（SDカードからドラッグ＆ドロップも可）</span>
+            </div>
+
+            <div class="photo-Editable-wrap" onmousedown="startPhotoDrag(event, this)" ontouchstart="startPhotoDrag(event, this)">
+              <img src="" alt="工事写真">
+              <div class="move-hint-badge">✥ ドラッグで移動</div>
+              <div class="resize-handle handle-e" onmousedown="startPhotoResize(event, this, 'e')" ontouchstart="startPhotoResize(event, this, 'e')">↔</div>
+              <div class="resize-handle handle-s" onmousedown="startPhotoResize(event, this, 's')" ontouchstart="startPhotoResize(event, this, 's')">↕</div>
+              <div class="resize-handle handle-se" onmousedown="startPhotoResize(event, this, 'se')" ontouchstart="startPhotoResize(event, this, 'se')">↘ サイズ調整</div>
+            </div>
+          </div>
+
+          <div class="info-column">
+            <table class="info-table">
+              <tbody>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-koshu" value="工 種 ："><input type="text" class="field-input input-koshu"></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-shubetsu" value="種 別 ："><input type="text" class="field-input input-shubetsu"></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-title label-title" value="写真タイトル："><input type="text" class="field-input title-spaced input-title" value="${preset.title}"></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-location" value="撮影箇所："><input type="text" class="field-input input-location"></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-desc" value="状況説明："><input type="text" class="field-input input-desc"></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input spaced-center input-status-line" value="${preset.statusLine}"></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input input-free1"></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-input input-free2"></div></td></tr>
+                <tr><td><div class="cell-inner"><input type="text" class="field-label-input label-w-standard label-witness" value="立 会 者 "><input type="text" class="field-input input-witness"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function addPage() {
+    const container = document.getElementById('pagesContainer');
+    const pageCount = container.querySelectorAll('.page-scale-shell').length;
+    const isFirstPage = (pageCount === 0);
+    const pageNum = pageCount + 1;
+
+    const shellEl = document.createElement('div');
+    shellEl.className = 'page-scale-shell';
+    shellEl.innerHTML = `
+      <div class="a4-page">
+        <div class="entries-wrapper">
+          ${createEntryHTML(0, isFirstPage)}
+          ${createEntryHTML(1, isFirstPage)}
+          ${createEntryHTML(2, isFirstPage)}
+        </div>
+        <div class="page-footer">${pageNum}</div>
+      </div>
+    `;
+    container.appendChild(shellEl);
+    applyPageScaling();
+    return shellEl;
+  }
+
+  function removeLastPage() {
+    const shells = document.querySelectorAll('.page-scale-shell');
+    if (shells.length <= 1) {
+      alert('最低1ページは必要です。');
+      return;
+    }
+    if (confirm('最後のページを削除しますか？')) {
+      shells[shells.length - 1].remove();
+    }
+  }
+
+  function setZoomMode(mode) {
+    zoomMode = mode;
+    document.getElementById('btnFitPage').classList.toggle('active', mode === 'fit-page');
+    document.getElementById('btnFitWidth').classList.toggle('active', mode === 'fit-width');
+    recalcScale();
+  }
+
+  function changeManualZoom(delta) {
+    zoomMode = 'manual';
+    document.getElementById('btnFitPage').classList.remove('active');
+    document.getElementById('btnFitWidth').classList.remove('active');
+    currentPageScale = Math.min(1.5, Math.max(0.35, currentPageScale + delta));
+    applyPageScaling();
+  }
+
+  function recalcScale() {
+    const panelH = document.querySelector('.control-panel').offsetHeight || 115;
+    const availW = window.innerWidth - 32;
+    const availH = window.innerHeight - panelH - 30;
+
+    if (zoomMode === 'fit-page') {
+      currentPageScale = Math.max(0.35, Math.min(availW / PAGE_BASE_W, availH / PAGE_BASE_H, 1.0));
+    } else if (zoomMode === 'fit-width') {
+      currentPageScale = Math.max(0.4, Math.min(availW / PAGE_BASE_W, 1.15));
+    }
+    applyPageScaling();
+  }
+
+  function applyPageScaling() {
+    document.getElementById('zoomLabel').textContent = Math.round(currentPageScale * 100) + '%';
+    document.querySelectorAll('.page-scale-shell').forEach(shell => {
+      shell.style.width = Math.round(PAGE_BASE_W * currentPageScale) + 'px';
+      shell.style.height = Math.round(PAGE_BASE_H * currentPageScale) + 'px';
+      shell.querySelector('.a4-page').style.transform = `scale(${currentPageScale})`;
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if (zoomMode !== 'manual') recalcScale();
+  });
+
+  function triggerSingleSelect(entryBlock) {
+    currentTargetEntry = entryBlock;
+    const input = document.getElementById('singleFileInput');
+    input.value = '';
+    input.click();
+  }
+
+  function triggerSelectFromBtn(btn) {
+    triggerSingleSelect(btn.closest('.photo-entry-block'));
+  }
+
+  document.getElementById('singleFileInput').addEventListener('change', function() {
+    if (this.files && this.files[0] && currentTargetEntry) {
+      loadFileIntoEntry(this.files[0], currentTargetEntry);
+    }
+  });
+
+  function loadFileIntoEntry(file, entryBlock) {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const rawImg = new Image();
+      rawImg.onload = function() {
+        const MAX_SIDE = 1400;
+        let w = rawImg.width;
+        let h = rawImg.height;
+        if (w > MAX_SIDE || h > MAX_SIDE) {
+          if (w > h) {
+            h = Math.round(h * (MAX_SIDE / w));
+            w = MAX_SIDE;
+          } else {
+            w = Math.round(w * (MAX_SIDE / h));
+            h = MAX_SIDE;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(rawImg, 0, 0, w, h);
+        const compressedUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setPhotoSource(entryBlock, compressedUrl, w, h);
+      };
+      rawImg.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setPhotoSource(entryBlock, dataUrl, naturalW, naturalH) {
+    const box = entryBlock.querySelector('.photo-box');
+    const wrap = entryBlock.querySelector('.photo-Editable-wrap');
+    const img = wrap.querySelector('img');
+    const placeholder = box.querySelector('.photo-placeholder');
+
+    img.src = dataUrl;
+    placeholder.style.display = 'none';
+    box.classList.add('has-image');
+
+    const imgRatio = (naturalW || 4) / (naturalH || 3);
+    const boxRatio = BOX_W / BOX_H;
+    let baseW, baseH;
+    if (imgRatio > boxRatio) {
+      baseW = BOX_W;
+      baseH = BOX_W / imgRatio;
+    } else {
+      baseH = BOX_H;
+      baseW = BOX_H * imgRatio;
+    }
+
+    wrap.dataset.baseW = baseW;
+    wrap.dataset.baseH = baseH;
+    applyWrapGeometry(entryBlock, baseW, baseH, (BOX_W - baseW) / 2, (BOX_H - baseH) / 2, 100);
+  }
+
+  function applyWrapGeometry(entryBlock, w, h, left, top, sliderPercent) {
+    const wrap = entryBlock.querySelector('.photo-Editable-wrap');
+    wrap.style.width = w + 'px';
+    wrap.style.height = h + 'px';
+    wrap.style.left = left + 'px';
+    wrap.style.top = top + 'px';
+    if (sliderPercent !== undefined) {
+      const slider = entryBlock.querySelector('.photo-zoom-slider');
+      slider.value = Math.min(250, Math.max(20, Math.round(sliderPercent)));
+    }
+  }
+
+  function onSliderZoom(slider) {
+    const entryBlock = slider.closest('.photo-entry-block');
+    const wrap = entryBlock.querySelector('.photo-Editable-wrap');
+    if (!wrap.dataset.baseW) return;
+
+    const scale = parseFloat(slider.value) / 100;
+    const baseW = parseFloat(wrap.dataset.baseW);
+    const baseH = parseFloat(wrap.dataset.baseH);
+    const oldW = parseFloat(wrap.style.width) || baseW;
+    const oldH = parseFloat(wrap.style.height) || baseH;
+    const oldLeft = parseFloat(wrap.style.left) || 0;
+    const oldTop = parseFloat(wrap.style.top) || 0;
+
+    const newW = baseW * scale;
+    const newH = baseH * scale;
+    const newLeft = (oldLeft + oldW / 2) - newW / 2;
+    const newTop = (oldTop + oldH / 2) - newH / 2;
+
+    applyWrapGeometry(entryBlock, newW, newH, newLeft, newTop);
+  }
+
+  function stepPhotoZoom(btn, delta) {
+    const entryBlock = btn.closest('.photo-entry-block');
+    const slider = entryBlock.querySelector('.photo-zoom-slider');
+    slider.value = Math.min(250, Math.max(20, parseInt(slider.value, 10) + delta));
+    onSliderZoom(slider);
+  }
+
+  function fitPhotoContain(btn) {
+    const entryBlock = btn.closest('.photo-entry-block');
+    const wrap = entryBlock.querySelector('.photo-Editable-wrap');
+    if (!wrap.dataset.baseW) return;
+    const baseW = parseFloat(wrap.dataset.baseW);
+    const baseH = parseFloat(wrap.dataset.baseH);
+    applyWrapGeometry(entryBlock, baseW, baseH, (BOX_W - baseW) / 2, (BOX_H - baseH) / 2, 100);
+  }
+
+  function fitPhotoStretch(btn) {
+    const entryBlock = btn.closest('.photo-entry-block');
+    const wrap = entryBlock.querySelector('.photo-Editable-wrap');
+    if (!wrap.dataset.baseW) return;
+    applyWrapGeometry(entryBlock, BOX_W, BOX_H, 0, 0, 100);
+  }
+
+  function startPhotoDrag(e, wrapEl) {
+    if (e.target.classList.contains('resize-handle')) return;
+    e.preventDefault();
+    const pt = getPointerPos(e);
+    const startX = pt.x, startY = pt.y;
+    const origLeft = parseFloat(wrapEl.style.left) || 0;
+    const origTop = parseFloat(wrapEl.style.top) || 0;
+
+    function onMove(ev) {
+      const cur = getPointerPos(ev);
+      wrapEl.style.left = (origLeft + (cur.x - startX) / currentPageScale) + 'px';
+      wrapEl.style.top = (origTop + (cur.y - startY) / currentPageScale) + 'px';
+    }
+    function onUp() {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+  }
+
+  function startPhotoResize(e, handleEl, dir) {
+    e.preventDefault();
+    e.stopPropagation();
+    const entryBlock = handleEl.closest('.photo-entry-block');
+    const wrapEl = entryBlock.querySelector('.photo-Editable-wrap');
+    const pt = getPointerPos(e);
+    const startX = pt.x, startY = pt.y;
+    const origW = parseFloat(wrapEl.style.width) || BOX_W;
+    const origH = parseFloat(wrapEl.style.height) || BOX_H;
+    const baseW = parseFloat(wrapEl.dataset.baseW) || BOX_W;
+
+    function onMove(ev) {
+      const cur = getPointerPos(ev);
+      const dx = (cur.x - startX) / currentPageScale;
+      const dy = (cur.y - startY) / currentPageScale;
+      let newW = origW, newH = origH;
+      if (dir === 'e' || dir === 'se') newW = Math.max(40, origW + dx);
+      if (dir === 's' || dir === 'se') newH = Math.max(40, origH + dy);
+      wrapEl.style.width = newW + 'px';
+      wrapEl.style.height = newH + 'px';
+      entryBlock.querySelector('.photo-zoom-slider').value = Math.min(250, Math.max(20, Math.round((newW / baseW) * 100)));
+    }
+    function onUp() {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+  }
+
+  function getPointerPos(e) {
+    return (e.touches && e.touches.length > 0)
+      ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      : { x: e.clientX, y: e.clientY };
+  }
+
+  function rotatePhoto(btn) {
+    const entryBlock = btn.closest('.photo-entry-block');
+    const img = entryBlock.querySelector('.photo-Editable-wrap img');
+    if (!img.src || img.src === window.location.href) return;
+
+    const imageObj = new Image();
+    imageObj.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = imageObj.height;
+      canvas.height = imageObj.width;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.drawImage(imageObj, -imageObj.width / 2, -imageObj.height / 2);
+      setPhotoSource(entryBlock, canvas.toDataURL('image/jpeg', 0.85), canvas.width, canvas.height);
+    };
+    imageObj.src = img.src;
+  }
+
+  function clearPhoto(btn) {
+    const entryBlock = btn.closest('.photo-entry-block');
+    const box = entryBlock.querySelector('.photo-box');
+    const img = entryBlock.querySelector('.photo-Editable-wrap img');
+    img.src = '';
+    box.querySelector('.photo-placeholder').style.display = 'flex';
+    box.classList.remove('has-image');
+  }
+
+  function handleBulkFiles(fileList) {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (files.length === 0) return;
+
+    let allEntries = Array.from(document.querySelectorAll('.photo-entry-block'));
+    let emptyEntries = allEntries.filter(el => !el.querySelector('.photo-box').classList.contains('has-image'));
+
+    while (emptyEntries.length < files.length) {
+      addPage();
+      allEntries = Array.from(document.querySelectorAll('.photo-entry-block'));
+      emptyEntries = allEntries.filter(el => !el.querySelector('.photo-box').classList.contains('has-image'));
+    }
+
+    files.forEach((file, idx) => loadFileIntoEntry(file, emptyEntries[idx]));
+  }
+
+  function handleDragOver(e, boxEl) { e.preventDefault(); boxEl.classList.add('dragover'); }
+  function handleDragLeave(e, boxEl) { e.preventDefault(); boxEl.classList.remove('dragover'); }
+  function handleDrop(e, boxEl) {
+    e.preventDefault();
+    boxEl.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+    const entryBlock = boxEl.closest('.photo-entry-block');
+
+    if (files.length === 1) {
+      loadFileIntoEntry(files[0], entryBlock);
+    } else {
+      let allEntries = Array.from(document.querySelectorAll('.photo-entry-block'));
+      let startIndex = allEntries.indexOf(entryBlock);
+      const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+      while (allEntries.length < startIndex + imageFiles.length) {
+        addPage();
+        allEntries = Array.from(document.querySelectorAll('.photo-entry-block'));
+      }
+      imageFiles.forEach((file, i) => loadFileIntoEntry(file, allEntries[startIndex + i]));
+    }
+  }
+
+  function applyQuickText(btn, text) {
+    const entryBlock = btn.closest('.photo-entry-block');
+    entryBlock.querySelector('.input-title').value = text;
+    entryBlock.querySelector('.input-status-line').value = text;
+  }
+
+  function copyFirstEntryToAll() {
+    const entries = document.querySelectorAll('.photo-entry-block');
+    if (entries.length === 0) return;
+    const first = entries[0];
+    // 項目名（ラベル）のコピー
+    const lblKoshu = first.querySelector('.label-koshu').value;
+    const lblShubetsu = first.querySelector('.label-shubetsu').value;
+    const lblTitle = first.querySelector('.label-title').value;
+    const lblLocation = first.querySelector('.label-location').value;
+    const lblDesc = first.querySelector('.label-desc').value;
+    const lblWitness = first.querySelector('.label-witness').value;
+
+    // 入力値のコピー
+    const koshu = first.querySelector('.input-koshu').value;
+    const shubetsu = first.querySelector('.input-shubetsu').value;
+    const location = first.querySelector('.input-location').value;
+    const desc = first.querySelector('.input-desc').value;
+    const witness = first.querySelector('.input-witness').value;
+
+    entries.forEach((entry, idx) => {
+      if (idx === 0) return;
+      entry.querySelector('.label-koshu').value = lblKoshu;
+      entry.querySelector('.label-shubetsu').value = lblShubetsu;
+      entry.querySelector('.label-title').value = lblTitle;
+      entry.querySelector('.label-location').value = lblLocation;
+      entry.querySelector('.label-desc').value = lblDesc;
+      entry.querySelector('.label-witness').value = lblWitness;
+
+      entry.querySelector('.input-koshu').value = koshu;
+      entry.querySelector('.input-shubetsu').value = shubetsu;
+      entry.querySelector('.input-location').value = location;
+      entry.querySelector('.input-desc').value = desc;
+      entry.querySelector('.input-witness').value = witness;
+    });
+    alert('1段目の共通項目・見出し名をすべての段にコピーしました！');
+  }
+
+  function toggleGrayscale() {
+    isGrayscale = !isGrayscale;
+    document.body.classList.toggle('grayscale-mode', isGrayscale);
+    document.getElementById('grayscaleBtn').textContent = isGrayscale ? '⚫ 白黒モード：ON' : '⚫ 白黒モード：OFF';
+  }
+
+  function safePrint() {
+    try {
+      window.print();
+    } catch (err) {
+      alert('プレビュー画面内では印刷が制限されている場合があります。右上の「💾 作業状態をファイル保存」でPCに保存してから開いてください。');
+    }
+  }
+
+  function saveCurrentHtmlFile() {
+    try {
+      // 値とラベルの最新入力をHTML属性に反映させて保存
+      document.querySelectorAll('input.field-input, input.field-label-input').forEach(inp => {
+        inp.setAttribute('value', inp.value);
+      });
+      const htmlText = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([htmlText], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `工事写真帳_${dateStr}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('保存中にエラーが発生しました: ' + e.message);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    if (document.querySelectorAll('.page-scale-shell').length === 0) {
+      addPage();
+    }
+    setTimeout(recalcScale, 50);
+  });
+</script>
+
+
+</body></html>
